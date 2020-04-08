@@ -1,0 +1,54 @@
+m255
+K4
+z2
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+dd:/program/Modelsim/examples
+vALU
+Z0 !s110 1585144541
+!i10b 1
+!s100 OKz8TL@glXSAN:8Ho[JZ^0
+ILQ4V1``FSB;8h_efbK?WN2
+Z1 VDg1SIo80bB@j0V0VzS_@n1
+Z2 dC:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/LabAssignment
+w1585144146
+8ALU.v
+FALU.v
+L0 21
+Z3 OP;L;10.4a;61
+r1
+!s85 0
+31
+Z4 !s108 1585144541.000000
+Z5 !s107 ALU.v|C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/LabAssignment/alu_tb_f.v|
+Z6 !s90 -reportprogress|300|-work|work|-stats=none|C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/LabAssignment/alu_tb_f.v|
+!s101 -O0
+!i113 1
+Z7 o-work work -L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact -O0
+n@a@l@u
+vALU_tb
+R0
+!i10b 1
+!s100 c1aLDF]LW2X[ND]l?6<aD2
+IU89fCEbiVV:^2_iI=OnA`2
+R1
+R2
+w1585136617
+8C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/LabAssignment/alu_tb_f.v
+FC:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/LabAssignment/alu_tb_f.v
+L0 29
+R3
+r1
+!s85 0
+31
+R4
+R5
+R6
+!s101 -O0
+!i113 1
+R7
+n@a@l@u_tb

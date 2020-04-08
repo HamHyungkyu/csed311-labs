@@ -1,0 +1,52 @@
+m255
+K4
+z2
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+dd:/program/Modelsim/examples
+vvending_machine
+!s110 1585918940
+!i10b 1
+!s100 56W=72S_IZ:1[:[7HE3kb3
+IY59dRa]1]alTEX0=HVPKN3
+Z0 VDg1SIo80bB@j0V0VzS_@n1
+Z1 dC:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/lab2
+w1585918936
+8C:\Users\hhk97\OneDrive - postech.ac.kr\4-1\Computer Architecture\lab2\vending_machine.v
+FC:\Users\hhk97\OneDrive - postech.ac.kr\4-1\Computer Architecture\lab2\vending_machine.v
+L0 7
+Z2 OP;L;10.4a;61
+r1
+!s85 0
+31
+!s108 1585918940.000000
+!s107 vending_machine_def.v|C:\Users\hhk97\OneDrive - postech.ac.kr\4-1\Computer Architecture\lab2\vending_machine.v|
+!s90 -reportprogress|300|-work|work|-stats=none|C:\Users\hhk97\OneDrive - postech.ac.kr\4-1\Computer Architecture\lab2\vending_machine.v|
+!s101 -O0
+!i113 1
+Z3 o-work work -L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact -O0
+vvending_machine_tb
+!s110 1585915513
+!i10b 1
+!s100 YUkUX4dNFdULa6]Rn]hhi0
+IFW?T0zlQ4cFOP>QCN^?zl0
+R0
+R1
+w1585876689
+8C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/lab2/vending_machine_tb.v
+FC:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/lab2/vending_machine_tb.v
+L0 8
+R2
+r1
+!s85 0
+31
+!s108 1585915513.000000
+!s107 vending_machine_def.v|C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/lab2/vending_machine_tb.v|
+!s90 -reportprogress|300|-work|work|-stats=none|C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/lab2/vending_machine_tb.v|
+!s101 -O0
+!i113 1
+R3

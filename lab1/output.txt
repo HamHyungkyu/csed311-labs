@@ -1,0 +1,85 @@
+TEST             ADD-1 :
+PASSED
+TEST             ADD-2 :
+PASSED
+TEST             ADD-3 :
+PASSED
+TEST             ADD-4 :
+PASSED
+TEST             ADD-5 :
+PASSED
+TEST             ADD-6 :
+PASSED
+TEST             SUB-1 :
+PASSED
+TEST             SUB-2 :
+PASSED
+TEST             SUB-3 :
+PASSED
+TEST             SUB-4 :
+PASSED
+TEST             SUB-5 :
+PASSED
+TEST              ID-1 :
+PASSED
+TEST              ID-2 :
+PASSED
+TEST             NOT-1 :
+PASSED
+TEST             NOT-2 :
+PASSED
+TEST             And-1 :
+PASSED
+TEST             And-2 :
+PASSED
+TEST              Or-1 :
+PASSED
+TEST              Or-2 :
+PASSED
+TEST            Nand-1 :
+PASSED
+TEST            Nand-2 :
+PASSED
+TEST             NOR-1 :
+PASSED
+TEST             NOR-2 :
+PASSED
+TEST             XOR-1 :
+PASSED
+TEST             XOR-2 :
+PASSED
+TEST            XNOR-1 :
+PASSED
+TEST            XNOR-2 :
+PASSED
+TEST             LLS-1 :
+PASSED
+TEST             LLS-2 :
+PASSED
+TEST             LRS-1 :
+PASSED
+TEST             LRS-2 :
+PASSED
+TEST             LRS-3 :
+PASSED
+TEST             ALS-1 :
+PASSED
+TEST             ALS-2 :
+PASSED
+TEST             ARS-1 :
+PASSED
+TEST             ARS-2 :
+PASSED
+TEST             ARS-3 :
+PASSED
+TEST             TCP-1 :
+PASSED
+TEST             TCP-2 :
+PASSED
+TEST             TCP-3 :
+PASSED
+TEST            ZERO-1 :
+PASSED
+TEST            ZERO-2 :
+PASSED
+Passed = 42, Failed = 0
