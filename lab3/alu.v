@@ -1,13 +1,11 @@
-`timescale 1ns / 100ps
-
 `include "opcodes.v"
 
 `define	NumBits	16
 
-module ALU (A, B, FuncCode, C, OverflowFlag);
+module alu (A, B, funcCode, C, OverflowFlag);
 	input [`NumBits-1:0] A;
 	input [`NumBits-1:0] B;
-	input [2:0] FuncCode;
+	input [2:0] funcCode;
 	output [`NumBits-1:0] C;
 	output OverflowFlag;
 
@@ -19,8 +17,8 @@ module ALU (A, B, FuncCode, C, OverflowFlag);
 		OverflowFlag = 0;
 	end   	
 	
-	always @(A or B or FuncCode) begin
-		case(FuncCode)
+	always @(A or B or funcCode) begin
+		case(funcCode)
 			`FUNC_ADD: begin
 					C = A + B;
 					OverflowFlag = (A[`NumBits - 1] ^ C[`NumBits -1]) & (B[`NumBits -1] ^ C[`NumBits -1] ); 
