@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-module alu (A, B, FuncCode, C);
-
-=======
 `include "opcodes.v"
 
 `define	NumBits	16
@@ -39,5 +35,4 @@ module alu (A, B, funcCode, C, OverflowFlag);
 			`FUNC_SHR: begin C = A >> 1; OverflowFlag = 0; end
 		endcase
 	end
->>>>>>> a9064c55eb36ea3a5361d29fa026d279c09657cf
 endmodule
