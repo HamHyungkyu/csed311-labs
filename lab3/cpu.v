@@ -21,8 +21,8 @@ module cpu (readM, writeM, address, data, ackOutput, inputReady, reset_n, clk);
 	reg IF;
 
 	reg [2:0] ALU_func;
-	reg [1:0] A, B;
-	wire C;
+	reg [`WORD_SIZE-1:0] A, B;
+	wire [`WORD_SIZE-1:0]C;
 
 	reg [1:0] write_reg;
 	reg reg_write;
@@ -42,6 +42,7 @@ module cpu (readM, writeM, address, data, ackOutput, inputReady, reset_n, clk);
 		A <= 0;
 		B <= 0;
 		reg_write = 0;
+		opcode <= 0;
 	end
 	
 	register_file REGFILE (
@@ -51,8 +52,8 @@ module cpu (readM, writeM, address, data, ackOutput, inputReady, reset_n, clk);
 		.reg_write(reg_write), 
 		.write_data(wb), 
 		.read_out1(read_out1),
-		 .read_out2(read_out2));
-	alu ALU (.A(A), .B(B), .FuncCode(ALU_func), .C(C));
+		.read_out2(read_out2));
+	alu ALU (.A(A), .B(B), .funcCode(ALU_func), .C(C));
 	
 	//IF
 	always @(posedge inputReady) begin
@@ -102,6 +103,7 @@ module cpu (readM, writeM, address, data, ackOutput, inputReady, reset_n, clk);
 			reg_write <= 0;
 			writeM <= 0;
 			address <= pc;
+			IF <= 1;
 		end
 	end
 
