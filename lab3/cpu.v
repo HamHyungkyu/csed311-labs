@@ -17,7 +17,6 @@ module cpu (readM, writeM, address, data, ackOutput, inputReady, reset_n, clk);
 	reg [7:0] imm;
 	reg [`WORD_SIZE-1:0] sign_extended_imm;
 	reg [11:0] target_addr;
-	reg [1:0] instr_type;
 	reg IF;
 
 	reg [2:0] ALU_func;
@@ -28,7 +27,6 @@ module cpu (readM, writeM, address, data, ackOutput, inputReady, reset_n, clk);
 	reg reg_write;
 	reg [`WORD_SIZE-1:0] wb;
 	wire [`WORD_SIZE-1:0] read_out1, read_out2;
-	parameter R = 2'b00, I = 2'b01, J=2'b10;
   	assign data = (opcode == `SWD_OP && IF != 1) ? read_out2 : `WORD_SIZE'bz;
 
 	//initailization 
@@ -45,6 +43,7 @@ module cpu (readM, writeM, address, data, ackOutput, inputReady, reset_n, clk);
 		opcode <= 0;
 	end
 	
+	//Use register file module
 	register_file REGFILE (
 		.read1(rs), 
 		.read2(rt), 
@@ -53,9 +52,10 @@ module cpu (readM, writeM, address, data, ackOutput, inputReady, reset_n, clk);
 		.write_data(wb), 
 		.read_out1(read_out1),
 		.read_out2(read_out2));
+	//Use ALU module
 	alu ALU (.A(A), .B(B), .funcCode(ALU_func), .C(C));
 	
-	//IF
+	//Instruction fetch OR LOAD
 	always @(posedge inputReady) begin
 		if(IF == 1)begin
 			opcode <= data[`WORD_SIZE-1:12];
@@ -107,33 +107,37 @@ module cpu (readM, writeM, address, data, ackOutput, inputReady, reset_n, clk);
 		endcase
 	end
 
+	//OFF writeM
 	always @(posedge ackOutput) begin
 		writeM <= 0;
 	end
 
-	//Type define
-	always @(*) begin
-		if( opcode == 4'd15) begin
-			instr_type = R;
-			controll_R_type();
+	//Type control after instruction fetch
+	always @(negedge IF) begin
+		if( opcode == 4'd15) begin 
+			control_R_type();
 		end
 		else if ( opcode == 4'd9 || opcode == 4'd10) begin
-			instr_type = J; 
-			controll_J_type();
+			control_J_type();
 		end
 		else begin 
-			instr_type = I;
-			controll_I_type();
+			control_I_type();
 		end 
 	end
 
+	//Clock 
 	always @(posedge clk) begin
 		if(!reset_n) begin
 			readM <= 0;
 			writeM <= 0;
 			address <= 0;
 			pc <= 0;
+			IF <= 0;
 			ALU_func <= 0;
+			A <= 0;
+			B <= 0;
+			reg_write = 0;
+			opcode <= 0;
 		end
 		else begin
 			readM <= 1;
@@ -145,7 +149,7 @@ module cpu (readM, writeM, address, data, ackOutput, inputReady, reset_n, clk);
 	end
 
 
-	task controll_R_type;
+	task control_R_type;
 		begin
 			A = read_out1;
 			B = read_out2;
@@ -170,7 +174,7 @@ module cpu (readM, writeM, address, data, ackOutput, inputReady, reset_n, clk);
 		end
 	endtask
 
-	task controll_J_type;
+	task control_J_type;
 		begin
 			if(opcode == `JAL_OP) begin
 				write_reg = 2;
@@ -180,7 +184,7 @@ module cpu (readM, writeM, address, data, ackOutput, inputReady, reset_n, clk);
 		end
 	endtask
 
-	task controll_I_type;
+	task control_I_type;
 		begin
 			pc = pc + 1;
 			if(imm[7] == 1) sign_extended_imm = {8'hff, imm};

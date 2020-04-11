@@ -30,13 +30,13 @@ r1
 !i113 1
 Z3 o-work work -L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact -O0
 vcpu
-!s110 1586595050
+!s110 1586604958
 !i10b 1
-!s100 Q9_L5GhFi9aC2z14QcbbS2
-IGI:6d[An]k1=h`=aQGT[<3
+!s100 RgiXAMm80WI6]`R4zm7e]2
+IJ`eRT8Jz[am:B_56]D_=b0
 R0
 R1
-w1586595043
+w1586604955
 8C:\Users\hhk97\OneDrive - postech.ac.kr\4-1\Computer Architecture\labs\lab3\cpu.v
 FC:\Users\hhk97\OneDrive - postech.ac.kr\4-1\Computer Architecture\labs\lab3\cpu.v
 L0 3
@@ -44,7 +44,7 @@ R2
 r1
 !s85 0
 31
-!s108 1586595050.000000
+!s108 1586604958.000000
 !s107 opcodes.v|C:\Users\hhk97\OneDrive - postech.ac.kr\4-1\Computer Architecture\labs\lab3\cpu.v|
 !s90 -reportprogress|300|-work|work|-stats=none|C:\Users\hhk97\OneDrive - postech.ac.kr\4-1\Computer Architecture\labs\lab3\cpu.v|
 !s101 -O0
@@ -72,13 +72,13 @@ Z5 !s108 1586588861.000000
 !i113 1
 R3
 vtb_cpu
-R4
+!s110 1586604326
 !i10b 1
 !s100 ?Wg4ATTYlzz3B^00YaE;i1
 I:g[38z@KT_zEa5jCkVS1F1
 R0
 R1
-w1586584190
+w1586604206
 8C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab3/cpu_evaluation_tb.v
 FC:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab3/cpu_evaluation_tb.v
 Z6 L0 10
@@ -86,7 +86,7 @@ R2
 r1
 !s85 0
 31
-R5
+!s108 1586604326.000000
 !s107 C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab3/cpu_evaluation_tb.v|
 !s90 -reportprogress|300|-work|work|-stats=none|C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab3/cpu_evaluation_tb.v|
 !s101 -O0
