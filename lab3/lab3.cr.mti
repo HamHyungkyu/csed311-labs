@@ -1,0 +1,41 @@
+{C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab3/alu.v} {0 {vlog -work work -stats=none {C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab3/alu.v}
+Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
+-- Compiling module alu
+** Error: C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab3/alu.v(1): (vlog-2730) Undefined variable: 'A'.
+
+** Error: C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab3/alu.v(1): Identifier must be declared with a port mode: A.
+** Error: C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab3/alu.v(1): (vlog-2730) Undefined variable: 'B'.
+
+** Error: C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab3/alu.v(1): Identifier must be declared with a port mode: B.
+** Error: C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab3/alu.v(1): (vlog-2730) Undefined variable: 'FuncCode'.
+
+** Error: C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab3/alu.v(1): Identifier must be declared with a port mode: FuncCode.
+** Error: C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab3/alu.v(1): (vlog-2730) Undefined variable: 'C'.
+
+** Error: C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab3/alu.v(1): Identifier must be declared with a port mode: C.
+
+} {4.0 5.0 6.0 8.0 9.0 11.0 12.0 14.0 15.0 16.0} {}} {C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab3/register_file.v} {1 {vlog -work work -stats=none {C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab3/register_file.v}
+Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
+-- Compiling module register_file
+
+Top level modules:
+	register_file
+
+} {} {}} {C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab3/cpu_evaluation_tb.v} {1 {vlog -work work -stats=none {C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab3/cpu_evaluation_tb.v}
+Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
+-- Compiling module tb_cpu
+
+Top level modules:
+	tb_cpu
+
+} {} {}} {C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab3/opcodes.v} {1 {vlog -work work -stats=none {C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab3/opcodes.v}
+Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
+
+} {} {}} {C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab3/cpu_evaluation_tb_f.v} {1 {vlog -work work -stats=none {C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab3/cpu_evaluation_tb_f.v}
+Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
+-- Compiling module tb_cpu_f
+
+Top level modules:
+	tb_cpu_f
+
+} {} {}}
