@@ -14,12 +14,12 @@ Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 
 
 ** Error: C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab3/alu.v(1): Identifier must be declared with a port mode: C.
 
-} {4.0 5.0 6.0 8.0 9.0 11.0 12.0 14.0 15.0 16.0} {}} {C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab3/register_file.v} {1 {vlog -work work -stats=none {C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab3/register_file.v}
+} {4.0 5.0 6.0 8.0 9.0 11.0 12.0 14.0 15.0 16.0} {}} {C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab3/cpu.v} {1 {vlog -work work -stats=none {C:\Users\hhk97\OneDrive - postech.ac.kr\4-1\Computer Architecture\labs\lab3\cpu.v}
 Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
--- Compiling module register_file
+-- Compiling module cpu
 
 Top level modules:
-	register_file
+	cpu
 
 } {} {}} {C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab3/cpu_evaluation_tb.v} {1 {vlog -work work -stats=none {C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab3/cpu_evaluation_tb.v}
 Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
