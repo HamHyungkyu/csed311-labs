@@ -29,7 +29,7 @@ module cpu (readM, writeM, address, data, ackOutput, inputReady, reset_n, clk);
 	reg [`WORD_SIZE-1:0] wb;
 	wire [`WORD_SIZE-1:0] read_out1, read_out2;
 	parameter R = 2'b00, I = 2'b01, J=2'b10;
-  	assign data = (opcode == `SWD_OP) ? read_out2 : `WORD_SIZE'bz;
+  	assign data = (opcode == `SWD_OP && IF != 1) ? read_out2 : `WORD_SIZE'bz;
 
 	//initailization 
 	initial begin
@@ -71,7 +71,44 @@ module cpu (readM, writeM, address, data, ackOutput, inputReady, reset_n, clk);
 		else if(opcode == `LWD_OP) begin
 			write_reg <= rt;
 			wb <= data;
+			readM <= 0;
+			reg_write <= 1;
 		end
+	end
+
+	//Writeback 
+	always @(negedge inputReady) begin
+		case(opcode)
+			`ALU_OP: begin
+				if(func == `INST_FUNC_JRL) begin
+					wb <= pc;
+					pc <= read_out1;
+				end
+				else begin
+					wb <= C;
+				end
+				reg_write <= 1;
+			end
+			`ADI_OP: begin
+				wb <= C;
+				reg_write <= 1;
+			end
+			`ORI_OP: begin
+				wb <= C;
+				reg_write <= 1;
+			end
+			`LHI_OP: begin
+				wb = imm << 8;
+				reg_write <= 1;
+			end
+			`SWD_OP: begin
+				writeM <= 1;
+			end
+		endcase
+	end
+
+	always @(posedge ackOutput) begin
+		writeM <= 0;
 	end
 
 	//Type define
@@ -107,38 +144,27 @@ module cpu (readM, writeM, address, data, ackOutput, inputReady, reset_n, clk);
 		end
 	end
 
-	always @(negedge clk) begin
-		if(instr_type == R && func != `INST_FUNC_JPR || opcode == `JAL_OP) begin
-			reg_write <= 1;
-		end
-		else if(opcode == `SWD_OP) begin
-			writeM <= 1;
-		end
-	end
 
 	task controll_R_type;
 		begin
 			A = read_out1;
-			B = read_out1;
+			B = read_out2;
 			write_reg = rd;
-
 			pc = pc + 1;
 			case(func)
-				`INST_FUNC_ADD: begin ALU_func = `FUNC_ADD; wb = C; end
-				`INST_FUNC_SUB:begin ALU_func = `FUNC_SUB; wb = C; end
-				`INST_FUNC_AND:begin ALU_func = `FUNC_AND; wb = C; end
-				`INST_FUNC_ORR: begin ALU_func = `FUNC_ORR; wb = C; end
-				`INST_FUNC_NOT: begin ALU_func = `FUNC_NOT; wb = C; end
-				`INST_FUNC_TCP: begin ALU_func = `FUNC_TCP; wb = C; end
-				`INST_FUNC_SHL: begin ALU_func = `FUNC_SHL; wb = C; end
-				`INST_FUNC_SHR: begin ALU_func = `FUNC_SHR; wb = C; end
+				`INST_FUNC_ADD: begin ALU_func = `FUNC_ADD; end
+				`INST_FUNC_SUB:begin ALU_func = `FUNC_SUB; end
+				`INST_FUNC_AND:begin ALU_func = `FUNC_AND; end
+				`INST_FUNC_ORR: begin ALU_func = `FUNC_ORR; end
+				`INST_FUNC_NOT: begin ALU_func = `FUNC_NOT; end
+				`INST_FUNC_TCP: begin ALU_func = `FUNC_TCP; end
+				`INST_FUNC_SHL: begin ALU_func = `FUNC_SHL; end
+				`INST_FUNC_SHR: begin ALU_func = `FUNC_SHR; end
 				`INST_FUNC_JPR: begin 
 					pc = read_out1;
 				end
 				`INST_FUNC_JRL: begin
 					write_reg = 2;
-					wb = pc;
-					pc = read_out1;
 				end
 			endcase
 		end
@@ -171,11 +197,9 @@ module cpu (readM, writeM, address, data, ackOutput, inputReady, reset_n, clk);
 					ALU_func = `FUNC_ORR;
 					A = read_out1;
 					B = sign_extended_imm;
-					wb = C;
 					write_reg = rt;
 				end
 				`LHI_OP: begin
-					wb = imm << 8;
 					write_reg = rt;
 				end
 				`BNE_OP: begin
