@@ -8,7 +8,8 @@
 `define MEM1 4'b0111;
 `define MEM2 4'b1000;
 `define MEM3 4'b1001;
-`define WB   4'b1010;
+`define MEM4 4'b1010;
+`define WB   4'b1011;
 `define INIT 4'b1111;
 
 module contorl(instr, clk, jal, branch, mem_read, mem_write, alu_src, reg_write, pvs_write_en);
@@ -24,6 +25,21 @@ module contorl(instr, clk, jal, branch, mem_read, mem_write, alu_src, reg_write,
     output pvs_write_en;
 
     reg [4:0] state;
+    reg [4:0] next_state;
+    
+    wire rtype;
+    wire itype;
+    wire lw;
+    wire sw;
+    wire br;
+    wire jp;
+
+    assign rtype = instr[0] & instr[1] & instr[2] & instr[3]; // 15
+    assign itype = ~instr[3] | (~instr[0] & ~instr[1] & ~instr[2] & instr[3]); // 0~8
+    assign lw = ~instr[3] &  instr[2] &  instr[1] &  instr[0]; // 7
+    assign sw =  instr[3] & ~instr[0] & ~instr[1] & ~instr[2]; // 8
+    assign br = ~instr[3] & ~instr[2]; //0 ~3
+    assign jp =  instr[3] & ~instr[2] & (instr[1] ^ instr[0]); // 9, 10
 
     initial begin
         jalr <= 0;
