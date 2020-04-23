@@ -42,7 +42,6 @@ module contorl(instr, clk, jal, branch, mem_read, mem_write, alu_src, reg_write,
     assign jp =  instr[3] & ~instr[2] & (instr[1] ^ instr[0]); // 9, 10
 
     initial begin
-        jalr <= 0;
         jal <= 0;
         branch <= 0;
         mem_read <= 0;
@@ -53,8 +52,87 @@ module contorl(instr, clk, jal, branch, mem_read, mem_write, alu_src, reg_write,
         state <= `INIT;
     end
 
+    always @(*) begin
+        case(state)
+        `IF1: begin
+            jal = 0;
+            branch = 0;
+            pvs_write_en = 0;
+            mem_write = 0;
+            alu_src = 0;
+            reg_write = 0;
+            mem_read = 1;
+            next_state = `IF2;   
+        end 
+        `IF2: begin
+            mem_read = 0;
+            next_state = `IF3; 
+        end
+        `IF3: begin
+            next_state = `IF4;
+        end
+        `IF4: begin
+            if(jp)begin
+                jal = 1;
+                alu_src = 1;
+                next_state = `EX1;
+            end
+            else begin
+                alu_src = itype;
+                branch = br;
+                next_state = `ID;
+            end
+        end
+        `ID: begin
+            next_state = `EX1;
+        end
+        `EX1: begin
+            next_state = `EX2;
+        end
+        `EX2: begin
+            if(br) begin
+                next_state = `IF1;
+                pvs_write_en = 1;
+            end
+            else if(lw | sw) begin 
+                next_state = `MEM1;
+            end
+            else begin
+                next_state = `WB;
+            end
+        end
+        `MEM1: begin
+            mem_read = lw;
+            mem_write = sw;
+            next_state = `MEM2;
+        end
+        `MEM2: begin
+            mem_read = 0;
+            mem_write = 0;
+            next_state = `MEM3;
+        end
+        `MEM3: begin
+            next_state = `MEM4;
+        end
+        `MEM4: begin
+            if(lw) begin
+                next_state = `WB;    
+            end
+            else begin
+                next_state = `IF1;
+                pvs_write_en = 1;
+            end
+        end
+        `WB: begin
+            next_state = `IF1;
+            pvs_write_en = 1;
+            reg_write = 1;
+        end
+        endcase
+    end
+
     always @(posedge clk) begin
-        
+        state <= next_state;
     end
 
 endmodule
