@@ -74,7 +74,6 @@ module contorl(instr, clk, jal, branch, mem_read, mem_write, alu_src, reg_write,
         `IF4: begin
             if(jp)begin
                 jal = 1;
-                alu_src = 1;
                 next_state = `EX1;
             end
             else begin
