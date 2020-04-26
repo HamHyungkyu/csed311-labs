@@ -15,14 +15,14 @@
 module control(instr, clk, jal, branch, mem_read, mem_write, alu_src, mem_to_reg, pvs_write_en);
     input [4:0] instr;
     input clk;
-    output jalr;
-    output jal;
-    output branch;
-    output mem_read;
-    output mem_write;
-    output alu_src;
-    output mem_to_reg;
-    output pvs_write_en;
+    output reg jalr;
+    output reg jal;
+    output reg branch;
+    output reg mem_read;
+    output reg mem_write;
+    output reg alu_src;
+    output reg mem_to_reg;
+    output reg pvs_write_en;
 
     reg [4:0] state;
     reg [4:0] next_state;
