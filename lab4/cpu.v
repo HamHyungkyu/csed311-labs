@@ -59,6 +59,9 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 
 	//Todo :PC controller & Branch condition
 
+	initial begin
+		init();
+	end
 	
 	always @(*) begin
 		//Write instruction register
@@ -78,10 +81,20 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 
 	always @(posedge clk) begin
 		if(!reset_n) begin
+			init();
 		end
 		else begin
 			
 		end
+	end
+
+	//Initialize task
+	task init begin
+		pc <= 0;
+		address <= 0;
+		num_inst <= 0;
+		output_port <= 0;
+		is_halted <= 0;
 	end
 
 endmodule
