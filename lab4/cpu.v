@@ -37,6 +37,7 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 	 .reg_write(reg_write), .mem_to_reg(mem_to_reg), .pvs_write_en(pvs_write_en), .i_or_d(i_or_d), .ir_write(ir_write));
 	
 	// ALU Control Module
+	// Todo : Should add PC to reg signal
 	alu_control ALU_CONTROL(.aluOp(opcode), .instFuncCode(func), .funcCode(ALU_func));
 
 	// Register File Module
@@ -55,9 +56,11 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 	// ALU Module 
 	alu ALU(.A(read_out1), .B(read_out2), .funcCode(ALU_func), .C(C));
 
-	
-
 	//Todo :PC controller & Branch condition
+	// PCsrc 1, PC src 2
+	//Todo : Assign wb
+	//Todo : num_inst, output_port, is_halted
+	// 모든 작업 완료하고 datapath.v 파일 지우기
 
 	initial begin
 		init();
@@ -78,13 +81,12 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 		end
 	end
 
-
 	always @(posedge clk) begin
 		if(!reset_n) begin
 			init();
 		end
 		else begin
-			
+			//Todo: 
 		end
 	end
 

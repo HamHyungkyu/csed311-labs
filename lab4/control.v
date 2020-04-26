@@ -58,6 +58,7 @@ module control(instr, clk, jal, branch, mem_read, mem_write, alu_src, reg_write,
         state <= `INIT;
     end
 
+    //Operation of each state
     always @(*) begin
         case(state)
         `IF1: begin
