@@ -12,7 +12,7 @@
 `define WB   4'b1011;
 `define INIT 4'b1111;
 
-module control(instr, clk, jal, branch, mem_read, mem_write, alu_src, reg_write, pvs_write_en);
+module control(instr, clk, jal, branch, mem_read, mem_write, alu_src, mem_to_reg, pvs_write_en);
     input [4:0] instr;
     input clk;
     output jalr;
@@ -21,7 +21,7 @@ module control(instr, clk, jal, branch, mem_read, mem_write, alu_src, reg_write,
     output mem_read;
     output mem_write;
     output alu_src;
-    output reg_write;
+    output mem_to_reg;
     output pvs_write_en;
 
     reg [4:0] state;
@@ -103,6 +103,7 @@ module control(instr, clk, jal, branch, mem_read, mem_write, alu_src, reg_write,
         `MEM1: begin
             mem_read = lw;
             mem_write = sw;
+            mem_to_reg = lw;
             next_state = `MEM2;
         end
         `MEM2: begin
@@ -125,7 +126,6 @@ module control(instr, clk, jal, branch, mem_read, mem_write, alu_src, reg_write,
         `WB: begin
             next_state = `IF1;
             pvs_write_en = 1;
-            reg_write = 1;
         end
         endcase
     end
