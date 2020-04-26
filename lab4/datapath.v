@@ -14,14 +14,7 @@ module datapath(clk, reset_n, readM, writeM, address, data, num_inst, output_por
 	output reg [`WORD_SIZE-1:0] output_port;
 	output reg is_halted;
 
-	// datapath from Control
-	input jal;
-	input branch;
-	input mem_read;
-	input mem_write;
-	input alu_src;
-	input reg_write;
-	input pvs_write_en;
+
 
 	// Register File
 	reg [1:0] rs, rt, rd;
@@ -51,38 +44,11 @@ module datapath(clk, reset_n, readM, writeM, address, data, num_inst, output_por
 		opcode <= 0;
 	end
 
-	//Clock 
-	always @(posedge clk) begin
-		if(!reset_n) begin
-			readM <= 0;
-			writeM <= 0;
-			address <= 0;
-			pc <= 0;
-			IF <= 0;
-			ALU_func <= 0;
-			A <= 0;
-			B <= 0;
-			reg_write = 0;
-			opcode <= 0;
-		end
-		else begin
-			readM <= 1;
-			reg_write <= 0;
-			writeM <= 0;
-			address <= pc;
-			IF <= 1;
-		end
-	end
+
 
 	always @(posedge clk) begin
 		if(IF == 1)begin
-			opcode <= data[`WORD_SIZE-1:12];
-			target_addr <= data[11:0];
-			rs <= data[11:10];
-			rt <= data[9:8];
-			rd <= data[7:6];
-			func <= data[5:0];
-			imm <= data[7:0];
+
 			readM <= 0;
 			IF <= 0;			
 		end
@@ -95,8 +61,7 @@ module datapath(clk, reset_n, readM, writeM, address, data, num_inst, output_por
 	end
 
 	always @(*) begin
-		if(imm[7] == 1) sign_extended_imm = {8'hff, imm};
-		else sign_extended_imm = {8'h00, imm};
+	
 
 		if(pc_to_reg) wb = pc + 1;
 		else begin
@@ -113,22 +78,4 @@ module datapath(clk, reset_n, readM, writeM, address, data, num_inst, output_por
 
 	end
 
-	// Register File Module
-	register_file REG(
-		.read1(rs),
-		.read2(rt), 
-		.write_reg(write_reg), 
-		.write_data(wb), 
-		.reg_write(reg_write), 
-		.read_out1(read_out1), 
-		.read_out2(read_out2), 
-		.clk(clk),
-		.pvs_write_en(pvs_write_en)
-	);
-
-	// ALU Module
-	alu ALU(.A(read_out1), .B(read_out2), .funcCode(ALU_func), .C(C));
-
-	// ALU Control Module
-	alu_control ALU_CONTROL(.aluOp(opcode), .instFuncCode(func), .funcCode(ALU_func));
 endmodule

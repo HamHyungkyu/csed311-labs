@@ -12,7 +12,7 @@
 `define WB   4'b1011;
 `define INIT 4'b1111;
 
-module control(instr, clk, jal, branch, mem_read, mem_write, alu_src, mem_to_reg, pvs_write_en);
+module control(instr, clk, jal, branch, mem_read, mem_write, alu_src, reg_write, mem_to_reg, pvs_write_en, i_or_d, ir_write);
     input [4:0] instr;
     input clk;
     output reg jalr;
@@ -21,8 +21,11 @@ module control(instr, clk, jal, branch, mem_read, mem_write, alu_src, mem_to_reg
     output reg mem_read;
     output reg mem_write;
     output reg alu_src;
+    output reg reg_write;
     output reg mem_to_reg;
     output reg pvs_write_en;
+    output reg i_or_d;
+    output reg ir_write;
 
     reg [4:0] state;
     reg [4:0] next_state;
@@ -48,7 +51,10 @@ module control(instr, clk, jal, branch, mem_read, mem_write, alu_src, mem_to_reg
         mem_write <= 0;
         alu_src <= 0;
         reg_write <= 0;
+        mem_to_reg <= 0;
         pvs_write_en <= 0;
+        i_or_d <= 0;
+        ir_write <= 0;
         state <= `INIT;
     end
 
@@ -61,7 +67,10 @@ module control(instr, clk, jal, branch, mem_read, mem_write, alu_src, mem_to_reg
             mem_write = 0;
             alu_src = 0;
             reg_write = 0;
+            mem_to_reg = 0;
             mem_read = 1;
+            i_or_d = 0;
+            ir_write = 1;
             next_state = `IF2;   
         end 
         `IF2: begin
@@ -83,9 +92,11 @@ module control(instr, clk, jal, branch, mem_read, mem_write, alu_src, mem_to_reg
             end
         end
         `ID: begin
+            ir_write = 0;
             next_state = `EX1;
         end
         `EX1: begin
+            ir_write = 0;
             next_state = `EX2;
         end
         `EX2: begin
@@ -104,6 +115,7 @@ module control(instr, clk, jal, branch, mem_read, mem_write, alu_src, mem_to_reg
             mem_read = lw;
             mem_write = sw;
             mem_to_reg = lw;
+            i_or_d = sw;
             next_state = `MEM2;
         end
         `MEM2: begin
@@ -126,6 +138,7 @@ module control(instr, clk, jal, branch, mem_read, mem_write, alu_src, mem_to_reg
         `WB: begin
             next_state = `IF1;
             pvs_write_en = 1;
+            reg_write = 1;
         end
         endcase
     end
