@@ -33,7 +33,7 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 	assign data = i_or_d ? read_out2 : `WORD_SIZE'bz;
 
 	//Contorl module
-	control CONTROL(.instr(), .clk(clk), .jal(jal), .branch(branch), .mem_read(readM), .mem_write(writeM), .alu_src(alu_src),
+	control CONTROL(.instr(opcode), .clk(clk), .jal(jal), .branch(branch), .mem_read(readM), .mem_write(writeM), .alu_src(alu_src),
 	 .reg_write(reg_write), .mem_to_reg(mem_to_reg), .pvs_write_en(pvs_write_en), .i_or_d(i_or_d), .ir_write(ir_write));
 	
 	// ALU Control Module
@@ -59,7 +59,9 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 
 	//Todo :PC controller & Branch condition
 
+	
 	always @(*) begin
+		//Write instruction register
 		if(ir_write) begin
 			opcode = data[`WORD_SIZE-1:12];
 			target_addr = {4'd0, data[11:0]};
