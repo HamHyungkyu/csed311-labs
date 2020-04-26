@@ -12,7 +12,7 @@
 `define WB   4'b1011;
 `define INIT 4'b1111;
 
-module contorl(instr, clk, jal, branch, mem_read, mem_write, alu_src, reg_write, pvs_write_en);
+module control(instr, clk, jal, branch, mem_read, mem_write, alu_src, reg_write, pvs_write_en);
     input [4:0] instr;
     input clk;
     output jalr;

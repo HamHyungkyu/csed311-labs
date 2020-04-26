@@ -13,7 +13,7 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 	output [`WORD_SIZE-1:0] output_port;	// this will be used for a "WWD" instruction
 	output is_halted;
 
-	contorl CONTORL(.instr, .clk(clk), .jal(), .branch(), .mem_read(), .mem_write(), .alu_src(),
+	control CONTROL(.instr, .clk(clk), .jal(), .branch(), .mem_read(), .mem_write(), .alu_src(),
 	 .reg_write(), .pvs_write_en());
 	datapath DATAPATH(.clk(), .reset_n(), .readM(), .writeM(), .address(), .data(), .num_inst(), .output_port(), .is_halted(),
 					  .jal(), .branch(), .mem_read(), .mem_write(), .alu_src(), .reg_write(), .pvs_write_en());
