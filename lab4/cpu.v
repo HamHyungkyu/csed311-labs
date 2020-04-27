@@ -31,7 +31,8 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 	wire [`WORD_SIZE-1:0] C;
 
 	//
-	wire [`WORD_SIZE-1] next_pc;
+	wire [`WORD_SIZE-1] address;
+	wire [`WORD_SIZE-1] wb;
 	wire [`WORD_SIZE-1] output_port;
 	wire is_halted;
 	wire bcond;
@@ -69,11 +70,12 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 	//pcsrc1 = jal || (branch && bcond);
 	//pcsrc2 = jalr;
 	//Todo : Assign wb
-	assign next_pc = (jalr == 0) ? (jal || (branch && bcond)) ? pc + sign_extended_imm : pc + 1) : (C); // sign_extended_imm
+	assign address = (jalr == 0) ? (jal || (branch && bcond)) ? pc + sign_extended_imm : pc + 1) : (C); // sign_extended_imm
 	assign wb = (pc_to_reg == 1) ? (pc) : ((mem_to_reg == 1) ? data : C); // data fix
 
 	//Todo : num_inst, output_port, is_halted
-	assign output_port = ((opcode == 15) && (func == 28)) ? read_out1 : 0; // else 0?
+	// num_inst += 1 when state go to IF1 on ppt.
+	assign output_port = ((opcode == 15) && (func == 28)) ? read_out1 : 0; // else 0? to xx?
 	assign is_halted = (opcode == 15) && (func == 29);
 	// 모든 작업 완료하고 datapath.v 파일 지우기
 
@@ -91,7 +93,7 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 			rd = data[7:6];
 			func = data[5:0];
 			imm = data[7:0];
-			if(imm[7] == 1) sign_extended_imm = {8'hff, imm}; // for jump change sign_extended_imm or pc
+			if(imm[7] == 1) sign_extended_imm = {8'hff, imm};
 			else sign_extended_imm = {8'h00, imm};
 		end
 	end
@@ -119,8 +121,16 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 				`JAL_OP: begin
 					rd = 2;
 					pc_to_reg = 1;
+					pc = {4'd0, target_addr};
 				end
-				default: bcond = 0;
+				`JMP_OP: begin
+					pc_to_reg = 1;
+					pc = {4'd0, target_addr};
+				end
+				default: begin
+					bcond = 0;
+					pc_to_reg = 0;
+				end
 			endcase
 
 			//jalr
@@ -151,5 +161,6 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 		bcond <= 0;
 		jalr <= 0;
 		pc_to_reg <= 0;
+		wb <= 0;
 	end
 endmodule
