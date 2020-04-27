@@ -72,13 +72,13 @@ R5
 !i113 1
 R4
 vcpu
-!s110 1588000473
+!s110 1588000748
 !i10b 1
-!s100 RVDMY8RgR>khf2C9`[ij_2
-IiblEWTnP]k?C@2:81iYH52
+!s100 _^=EbFZGRIj6zG^mTHF;80
+Ic;MX:M]Vd5kRX1J1_NT::2
 R1
 R2
-w1588000467
+w1588000731
 8C:\Users\hhk97\OneDrive - postech.ac.kr\4-1\Computer Architecture\labs\lab4\cpu.v
 FC:\Users\hhk97\OneDrive - postech.ac.kr\4-1\Computer Architecture\labs\lab4\cpu.v
 L0 5
@@ -86,7 +86,7 @@ R3
 r1
 !s85 0
 31
-!s108 1588000473.000000
+!s108 1588000747.000000
 !s107 opcodes.v|C:\Users\hhk97\OneDrive - postech.ac.kr\4-1\Computer Architecture\labs\lab4\cpu.v|
 !s90 -reportprogress|300|-work|work|-stats=none|C:\Users\hhk97\OneDrive - postech.ac.kr\4-1\Computer Architecture\labs\lab4\cpu.v|
 !s101 -O0

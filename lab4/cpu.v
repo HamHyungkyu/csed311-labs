@@ -43,7 +43,6 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 	reg jalr;
 	reg pc_to_reg;
 
-
 	assign data = i_or_d ? read_out2 : `WORD_SIZE'bz;
 
 	//Contorl signal module
