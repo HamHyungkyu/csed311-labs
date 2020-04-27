@@ -31,19 +31,21 @@ module state_control(clk, reset_n, jal, branch, mem_read, mem_write, readM, writ
     always @(*) begin
         case(state)
             `IF1: begin
+                pvs_write_en = 0;
                 readM = 1;
                 i_or_d = 0;
                 ir_write = 1;
                 next_state = `IF2;   
             end 
             `IF2: begin
-                readM = 0;
                 next_state = `IF3; 
             end
             `IF3: begin
                 next_state = `IF4;
             end
             `IF4: begin
+                ir_write = 0;
+                readM = 0;
                 if(jal)begin
                     next_state = `EX1;
                 end
@@ -52,11 +54,11 @@ module state_control(clk, reset_n, jal, branch, mem_read, mem_write, readM, writ
                 end
             end
             `ID: begin
-                ir_write = 0;
+      
                 next_state = `EX1;
             end
             `EX1: begin
-                ir_write = 0;
+     
                 next_state = `EX2;
             end
             `EX2: begin
@@ -78,14 +80,15 @@ module state_control(clk, reset_n, jal, branch, mem_read, mem_write, readM, writ
                 next_state = `MEM2;
             end
             `MEM2: begin
-                readM = 0;
-                writeM = 0;
+        
                 next_state = `MEM3;
             end
             `MEM3: begin
                 next_state = `MEM4;
             end
             `MEM4: begin
+                readM = 0;
+                writeM = 0;
                 if(mem_read) begin
                     i_or_d = 0;
                     next_state = `WB;    

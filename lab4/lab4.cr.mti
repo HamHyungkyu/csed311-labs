@@ -8,13 +8,6 @@ Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 
 Top level modules:
 	control
 
-} {} {}} {C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/state_control.v} {1 {vlog -work work -stats=none {C:\Users\hhk97\OneDrive - postech.ac.kr\4-1\Computer Architecture\labs\lab4\state_control.v}
-Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
--- Compiling module state_control
-
-Top level modules:
-	state_control
-
 } {} {}} {C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/Memory.v} {1 {vlog -work work -stats=none {C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/Memory.v}
 Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
 -- Compiling module Memory
@@ -42,6 +35,16 @@ Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 
 
 Top level modules:
 	alu
+
+} {} {}} {C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/cpu.v} {2 {vlog -work work -stats=none {C:\Users\hhk97\OneDrive - postech.ac.kr\4-1\Computer Architecture\labs\lab4\cpu.v}
+Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
+** Warning: ** while parsing file included at C:\Users\hhk97\OneDrive - postech.ac.kr\4-1\Computer Architecture\labs\lab4\cpu.v(3)
+** at opcodes.v(42): (vlog-2263) Redefinition of macro: 'WORD_SIZE' (previously defined near C:\Users\hhk97\OneDrive - postech.ac.kr\4-1\Computer Architecture\labs\lab4\cpu.v(2)) .
+
+-- Compiling module cpu
+
+Top level modules:
+	cpu
 
 } {} {}} {C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/register_file.v} {1 {vlog -work work -stats=none {C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/register_file.v}
 Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015

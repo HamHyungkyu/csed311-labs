@@ -167,6 +167,11 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 		jalr <= 0;
 		pc_to_reg <= 0;
 		next_pc <= 0;
+		opcode <= 0;
+		func <= 0;
+		imm <= 0;
+		sign_extended_imm <= 0;
+		target_addr <= 0;
 	end
 	endtask
 endmodule
