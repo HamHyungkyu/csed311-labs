@@ -31,14 +31,11 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 	wire [`WORD_SIZE-1:0] C;
 
 	//
-	wire [`WORD_SIZE-1] address;
+	wire [`WORD_SIZE-1] next_pc;
 	wire [`WORD_SIZE-1] wb;
-	wire [`WORD_SIZE-1] output_port;
-	wire is_halted;
 	wire bcond;
 	wire jalr;
 	wire pc_to_reg;
-
 
 	assign data = i_or_d ? read_out2 : `WORD_SIZE'bz;
 
@@ -70,8 +67,9 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 	//pcsrc1 = jal || (branch && bcond);
 	//pcsrc2 = jalr;
 	//Todo : Assign wb
-	assign address = (jalr == 0) ? (jal || (branch && bcond)) ? pc + sign_extended_imm : pc + 1) : (C); // sign_extended_imm
+	assign next_pc = (jalr == 0) ? (jal || (branch && bcond)) ? pc + sign_extended_imm : pc + 1) : (C); // sign_extended_imm
 	assign wb = (pc_to_reg == 1) ? (pc) : ((mem_to_reg == 1) ? data : C); // data fix
+	assign address = pc;
 
 	//Todo : num_inst, output_port, is_halted
 	// num_inst += 1 when state go to IF1 on ppt.
@@ -104,51 +102,52 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 		end
 		else begin
 			//Todo:
-			//bcond
-			case(opcode)
-				`BNE_OP: begin
-					if(read_out1 != read_out2) bcond = 1;
-				end
-				`BEQ_OP: begin
-					if(read_out1 == read_out2) bcond = 1;
-				end
-				`BGZ_OP: begin
-					if(read_out1 > 0) bcond = 1;
-				end
-				`BLZ_OP: begin
-					if(read_out1 <= read_out2) bcond = 1;
-				end
-				`JAL_OP: begin
-					rd = 2;
-					pc_to_reg = 1;
-					pc = {4'd0, target_addr};
-				end
-				`JMP_OP: begin
-					pc_to_reg = 1;
-					pc = {4'd0, target_addr};
-				end
-				default: begin
-					bcond = 0;
-					pc_to_reg = 0;
-				end
-			endcase
+			if(pvs_write_en) pc <= next_pc;
+		end
+	end
 
-			//jalr
-			case(func)
-				`INST_FUNC_JPR: begin
-					jalr = 1;
-				end
-				`INST_FUNC_JRL: begin
-					jalr = 1;
-					rd = 2;
-					pc_to_reg = 1;
-				end
-				default: jalr = 0;
-			endcase
+	always @(*) begin
+		//bcond
+		case(opcode)
+			`BNE_OP: begin
+				if(read_out1 != read_out2) bcond = 1;
+			end
+			`BEQ_OP: begin
+				if(read_out1 == read_out2) bcond = 1;
+			end
+			`BGZ_OP: begin
+				if(read_out1 > 0) bcond = 1;
+			end
+			`BLZ_OP: begin
+				if(read_out1 <= read_out2) bcond = 1;
+			end
+			`JAL_OP: begin
+				rd = 2;
+				pc_to_reg = 1;
+				pc = {4'd0, target_addr};
+			end
+			`JMP_OP: begin
+				pc_to_reg = 1;
+				pc = {4'd0, target_addr};
+			end
+			default: begin
+				bcond = 0;
+				pc_to_reg = 0;
+			end
+		endcase
 
-			//pc_to_reg
-
-
+		//jalr
+		case(func)
+			`INST_FUNC_JPR: begin
+				jalr = 1;
+			end
+			`INST_FUNC_JRL: begin
+				jalr = 1;
+				rd = 2;
+				pc_to_reg = 1;
+			end
+			default: jalr = 0;
+		endcase
 	end
 
 	//Initialize task
