@@ -1,5 +1,5 @@
 module control(instr, jal, branch, mem_read, mem_write, alu_src, reg_write, mem_to_reg);
-    input [3:0] instr;
+    input [4:0] instr;
     output reg jal;
     output reg branch;
     output reg mem_read;
