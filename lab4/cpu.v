@@ -30,6 +30,12 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 	reg [2:0] ALU_func;
 	wire [`WORD_SIZE-1:0] C;
 
+	//
+	wire next_pc;
+	wire bcond;
+	wire jalr;
+	wire pc_to_reg;
+
 	assign data = i_or_d ? read_out2 : `WORD_SIZE'bz;
 
 	//Contorl module
@@ -44,7 +50,7 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 	register_file REG( 
 		.read1(rs),
 		.read2(rt), 
-		.write_reg(write_reg), 
+		.write_reg(rd), 
 		.write_data(wb), 
 		.reg_write(reg_write), 
 		.read_out1(read_out1), 
@@ -57,8 +63,12 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 	alu ALU(.A(read_out1), .B(read_out2), .funcCode(ALU_func), .C(C));
 
 	//Todo :PC controller & Branch condition
-	// PCsrc 1, PC src 2
+	//pcsrc1 = jal || (branch && bcond);
+	//pcsrc2 = jalr;
 	//Todo : Assign wb
+	assign next_pc = (jalr == 0) ? (jal || (branch && bcond)) ? pc + sign_extended_imm : pc + 1) : (C); // sign_extended_imm
+	assign wb = (pc_to_reg == 1) ? (pc) : ((mem_to_reg == 1) ? data : C); // data fix
+
 	//Todo : num_inst, output_port, is_halted
 	// 모든 작업 완료하고 datapath.v 파일 지우기
 
@@ -76,7 +86,7 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 			rd = data[7:6];
 			func = data[5:0];
 			imm = data[7:0];
-			if(imm[7] == 1) sign_extended_imm = {8'hff, imm};
+			if(imm[7] == 1) sign_extended_imm = {8'hff, imm}; // for jump change sign_extended_imm or pc
 			else sign_extended_imm = {8'h00, imm};
 		end
 	end
@@ -86,8 +96,44 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 			init();
 		end
 		else begin
-			//Todo: 
-		end
+			//Todo:
+			//bcond
+			case(opcode)
+				`BNE_OP: begin
+					if(read_out1 != read_out2) bcond = 1;
+				end
+				`BEQ_OP: begin
+					if(read_out1 == read_out2) bcond = 1;
+				end
+				`BGZ_OP: begin
+					if(read_out1 > 0) bcond = 1;
+				end
+				`BLZ_OP: begin
+					if(read_out1 <= read_out2) bcond = 1;
+				end
+				`JAL_OP: begin
+					rd = 2;
+					pc_to_reg = 1;
+				end
+				default: bcond = 0;
+			endcase
+
+			//jalr
+			case(func)
+				`INST_FUNC_JPR: begin
+					jalr = 1;
+				end
+				`INST_FUNC_JRL: begin
+					jalr = 1;
+					rd = 2;
+					pc_to_reg = 1;
+				end
+				default: jalr = 0;
+			endcase
+
+			//pc_to_reg
+
+
 	end
 
 	//Initialize task
@@ -97,6 +143,8 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 		num_inst <= 0;
 		output_port <= 0;
 		is_halted <= 0;
+		bcond <= 0;
+		jalr <= 0;
+		pc_to_reg <= 0;
 	end
-
 endmodule
