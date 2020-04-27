@@ -31,10 +31,13 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 	wire [`WORD_SIZE-1:0] C;
 
 	//
-	wire next_pc;
+	wire [`WORD_SIZE-1] next_pc;
+	wire [`WORD_SIZE-1] output_port;
+	wire is_halted;
 	wire bcond;
 	wire jalr;
 	wire pc_to_reg;
+
 
 	assign data = i_or_d ? read_out2 : `WORD_SIZE'bz;
 
@@ -70,6 +73,8 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 	assign wb = (pc_to_reg == 1) ? (pc) : ((mem_to_reg == 1) ? data : C); // data fix
 
 	//Todo : num_inst, output_port, is_halted
+	assign output_port = ((opcode == 15) && (func == 28)) ? read_out1 : 0; // else 0?
+	assign is_halted = (opcode == 15) && (func == 29);
 	// 모든 작업 완료하고 datapath.v 파일 지우기
 
 	initial begin
