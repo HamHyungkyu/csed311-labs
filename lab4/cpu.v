@@ -44,8 +44,6 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 	reg pc_to_reg;
 
 	assign data = i_or_d ? read_out2 : `WORD_SIZE'bz;
-	assign A = read_out1;
-	assign B = alu_src ? sign_extended_imm : read_out2;
 	assign write_reg = alu_src ? rt : rd;
 
 	//Contorl signal module
@@ -58,7 +56,8 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 	
 	// ALU Control Module
 	// Todo : Should add PC to reg signal
-	alu_control ALU_CONTROL(.aluOp(opcode), .instFuncCode(func), .funcCode(ALU_func));
+	alu_control ALU_CONTROL(.aluOp(opcode), .instFuncCode(func), .alu_src(alu_src), .read_out1(read_out1), .read_out2(read_out2), 
+	.sign_extended_imm(sign_extended_imm), .A(A), .B(B), .funcCode(ALU_func));
 
 	// Register File Module
 	register_file REG( 

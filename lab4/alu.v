@@ -22,8 +22,8 @@ module alu (A, B, funcCode, C);
 			`FUNC_AND: begin C = A & B; end
 			`FUNC_ORR: begin C = A | B; end
 			`FUNC_TCP: begin C = ~A + 1; end
-			`FUNC_SHL: begin C = A << 1; end
-			`FUNC_SHR: begin C = A >> 1; end
+			`FUNC_SHL: begin C = A << B; end
+			`FUNC_SHR: begin C = A >> B; end
 		endcase
 	end
 endmodule
