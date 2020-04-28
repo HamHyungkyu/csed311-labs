@@ -81,7 +81,7 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 	//pcsrc2 = jalr;
 	//Todo : Assign wb
 	assign address = ((mem_read & ~ir_write & readM) | (mem_write & ~ir_write & writeM))? C : pc; // sign_extended_imm
-	assign wb = (pc_to_reg == 1) ? (pc) : ((mem_to_reg == 1) ? data_cpy : C); // data fix
+	assign wb = (pc_to_reg == 1) ? (pc + 1) : ((mem_to_reg == 1) ? data_cpy : C); // data fix
 
 	//Todo : num_inst, output_port, is_halted
 	// num_inst += 1 when state go to IF1 on ppt.
@@ -112,7 +112,6 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 			bcond = 0;
 			pc_to_reg = 0;
 		end
-		//Todo:
 		//bcond
 		case(opcode)
 			`BNE_OP: begin
@@ -156,7 +155,7 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 				endcase
 			end
 		endcase
-		next_pc = (jalr == 0) ? (jal  ? target_addr : ((branch && bcond)? pc + sign_extended_imm + 1 :pc + 1)) : target_addr;
+		next_pc = (jalr == 0) ? (jal  ? target_addr : ((branch && bcond)? pc + sign_extended_imm + 1 :pc + 1)) : read_out1;
 	end
 
 	always @(posedge clk) begin
