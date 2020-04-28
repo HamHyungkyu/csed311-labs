@@ -108,8 +108,7 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 			imm = data_cpy[7:0];
 			if(imm[7] == 1) sign_extended_imm = {8'hff, imm};
 			else sign_extended_imm = {8'h00, imm};
-			$display("INSTRUCTION opcode: %d|rs: %d|rt %d|rd %d|imm %d|func %d", opcode, rs, rt, rd, sign_extended_imm, func);
-			next_pc = (jalr == 0) ? (jal  ? target_addr : ((branch && bcond)? pc + sign_extended_imm :pc + 1)) :  {4'd0, target_addr};
+			$display("INSTRUCTION [%h]opcode: %d|rs: %d|rt %d|rd %d|imm %d|func %d| target %h", pc,opcode, rs, rt, rd, sign_extended_imm, func, target_addr);
 			bcond = 0;
 			pc_to_reg = 0;
 		end
@@ -118,15 +117,23 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 		case(opcode)
 			`BNE_OP: begin
 				if(read_out1 != read_out2) bcond = 1;
+				else bcond = 0;
+				$display("%h bcond %d", pc,bcond);
 			end
 			`BEQ_OP: begin
 				if(read_out1 == read_out2) bcond = 1;
+				else bcond = 0;
+				$display("%h bcond %d", pc,bcond);
 			end
 			`BGZ_OP: begin
-				if(read_out1 > 0) bcond = 1;
+				if(read_out1[15] == 0 && read_out1 > 0) bcond = 1;
+				else bcond = 0;
+				$display("%h bcond %d", pc,bcond);
 			end
 			`BLZ_OP: begin
-				if(read_out1 <= read_out2) bcond = 1;
+				if(read_out1[15] == 1) bcond = 1;
+				else bcond = 0;
+				$display("%h bcond %d", pc,bcond);
 			end
 			`JAL_OP: begin
 				rd = 2;
@@ -149,6 +156,7 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 				endcase
 			end
 		endcase
+		next_pc = (jalr == 0) ? (jal  ? target_addr : ((branch && bcond)? pc + sign_extended_imm + 1 :pc + 1)) : target_addr;
 	end
 
 	always @(posedge clk) begin
