@@ -80,17 +80,16 @@ module state_control(clk, reset_n, jal, branch, mem_read, mem_write, readM, writ
                 next_state = `MEM2;
             end
             `MEM2: begin
-        
+                readM = 0;
+                writeM = 0;
+                i_or_d = 0;
                 next_state = `MEM3;
             end
             `MEM3: begin
                 next_state = `MEM4;
             end
             `MEM4: begin
-                readM = 0;
-                writeM = 0;
                 if(mem_read) begin
-                    i_or_d = 0;
                     next_state = `WB;    
                 end
                 else begin

@@ -42,6 +42,7 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 	reg bcond;
 	reg jalr;
 	reg pc_to_reg;
+	reg [`WORD_SIZE-1:0] data_cpy;
 
 	assign data = i_or_d ? read_out2 : `WORD_SIZE'bz;
 	assign write_reg = alu_src ? rt : rd;
@@ -79,8 +80,8 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 	//pcsrc1 = jal || (branch && bcond);
 	//pcsrc2 = jalr;
 	//Todo : Assign wb
-	assign address = pc; // sign_extended_imm
-	assign wb = (pc_to_reg == 1) ? (pc) : ((mem_to_reg == 1) ? data : C); // data fix
+	assign address = ((mem_read & ~ir_write & readM) | (mem_write & ~ir_write & writeM))? C : pc; // sign_extended_imm
+	assign wb = (pc_to_reg == 1) ? (pc) : ((mem_to_reg == 1) ? data_cpy : C); // data fix
 
 	//Todo : num_inst, output_port, is_halted
 	// num_inst += 1 when state go to IF1 on ppt.
@@ -92,18 +93,25 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 	end
 	
 	always @(*) begin
+		if(readM) begin
+			data_cpy = data;
+		end
+
 		//Write instruction register
 		if(ir_write) begin
-			opcode = data[`WORD_SIZE-1:12];
-			target_addr = {4'd0, data[11:0]};
-			rs = data[11:10];
-			rt = data[9:8];
-			rd = data[7:6];
-			func = data[5:0];
-			imm = data[7:0];
+			opcode = data_cpy[`WORD_SIZE-1:12];
+			target_addr = {pc[15:12], data_cpy[11:0]};
+			rs = data_cpy[11:10];
+			rt = data_cpy[9:8];
+			rd = data_cpy[7:6];
+			func = data_cpy[5:0];
+			imm = data_cpy[7:0];
 			if(imm[7] == 1) sign_extended_imm = {8'hff, imm};
 			else sign_extended_imm = {8'h00, imm};
 			$display("INSTRUCTION opcode: %d|rs: %d|rt %d|rd %d|imm %d|func %d", opcode, rs, rt, rd, sign_extended_imm, func);
+			next_pc = (jalr == 0) ? (jal  ? target_addr : ((branch && bcond)? pc + sign_extended_imm :pc + 1)) :  {4'd0, target_addr};
+			bcond = 0;
+			pc_to_reg = 0;
 		end
 		//Todo:
 		//bcond
@@ -140,12 +148,7 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 					default: jalr = 0;
 				endcase
 			end
-			default: begin
-				bcond = 0;
-				pc_to_reg = 0;
-			end
 		endcase
-		next_pc = (jalr == 0) ? ((jal || (branch && bcond)) ? pc + sign_extended_imm : pc + 1) :  {4'd0, target_addr};
 	end
 
 	always @(posedge clk) begin

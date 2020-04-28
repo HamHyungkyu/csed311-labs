@@ -30,13 +30,13 @@ r1
 !i113 1
 Z3 o-work work -L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact -O0
 valu_control
-Z4 !s110 1588080847
+!s110 1588084493
 !i10b 1
 !s100 3Ib[Jb1?7J7MdSl<SD[hg2
 I>beLLVkSaD<`T3eNbYliU3
 R0
 R1
-w1588080765
+w1588084366
 8C:\Users\hhk97\OneDrive - postech.ac.kr\4-1\Computer Architecture\labs\lab4\alu_control.v
 FC:\Users\hhk97\OneDrive - postech.ac.kr\4-1\Computer Architecture\labs\lab4\alu_control.v
 L0 4
@@ -44,14 +44,14 @@ R2
 r1
 !s85 0
 31
-Z5 !s108 1588080847.000000
+!s108 1588084493.000000
 !s107 opcodes.v|C:\Users\hhk97\OneDrive - postech.ac.kr\4-1\Computer Architecture\labs\lab4\alu_control.v|
 !s90 -reportprogress|300|-work|work|-stats=none|C:\Users\hhk97\OneDrive - postech.ac.kr\4-1\Computer Architecture\labs\lab4\alu_control.v|
 !s101 -O0
 !i113 1
 R3
 vcontrol
-Z6 !s110 1588079825
+Z4 !s110 1588079825
 !i10b 1
 !s100 M52Wz2bTc@B`f8o[Z8E9:2
 I^<jQIF`@a;zDl[80B`Fcl2
@@ -65,20 +65,20 @@ R2
 r1
 !s85 0
 31
-Z7 !s108 1588079825.000000
+Z5 !s108 1588079825.000000
 !s107 C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/control.v|
 !s90 -reportprogress|300|-work|work|-stats=none|C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/control.v|
 !s101 -O0
 !i113 1
 R3
 vcpu
-R4
+!s110 1588084715
 !i10b 1
-!s100 GNCiGbFA:@Q3DLkj7ODRm2
-IE08iK2mQf6[Ua[eK[;MEX0
+!s100 ?>Oi?J7NZVcmc_7<lgdD=3
+I7@:R8I_Vg1KMT=UF9Z9[M1
 R0
 R1
-w1588080838
+w1588084698
 8C:\Users\hhk97\OneDrive - postech.ac.kr\4-1\Computer Architecture\labs\lab4\cpu.v
 FC:\Users\hhk97\OneDrive - postech.ac.kr\4-1\Computer Architecture\labs\lab4\cpu.v
 L0 5
@@ -86,14 +86,14 @@ R2
 r1
 !s85 0
 31
-R5
+!s108 1588084715.000000
 !s107 opcodes.v|C:\Users\hhk97\OneDrive - postech.ac.kr\4-1\Computer Architecture\labs\lab4\cpu.v|
 !s90 -reportprogress|300|-work|work|-stats=none|C:\Users\hhk97\OneDrive - postech.ac.kr\4-1\Computer Architecture\labs\lab4\cpu.v|
 !s101 -O0
 !i113 1
 R3
 vcpu_TB
-R6
+R4
 !i10b 1
 !s100 9hz`2BHo088:WUOGXM[Fb0
 IAJ7UL_jCSZP[U4;HmRS0Z1
@@ -107,7 +107,7 @@ R2
 r1
 !s85 0
 31
-R7
+R5
 !s107 C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/cpu_TB.v|
 !s90 -reportprogress|300|-work|work|-stats=none|C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/cpu_TB.v|
 !s101 -O0
@@ -115,7 +115,7 @@ R7
 R3
 ncpu_@t@b
 vMemory
-R6
+R4
 !i10b 1
 !s100 E[=aWR9LlW?;Pf>]bYY5C0
 I@6a8>XAN0`708gehao2@]1
@@ -129,7 +129,7 @@ R2
 r1
 !s85 0
 31
-R7
+R5
 !s107 C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/Memory.v|
 !s90 -reportprogress|300|-work|work|-stats=none|C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/Memory.v|
 !s101 -O0
@@ -137,7 +137,7 @@ R7
 R3
 n@memory
 vregister_file
-R6
+R4
 !i10b 1
 !s100 R]9J^OWXfTEQ0nZ6HjiW]1
 IW4z_4Z]dh2>5^_IQcaJ4X2
@@ -151,20 +151,20 @@ R2
 r1
 !s85 0
 31
-R7
+R5
 !s107 C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/register_file.v|
 !s90 -reportprogress|300|-work|work|-stats=none|C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/register_file.v|
 !s101 -O0
 !i113 1
 R3
 vstate_control
-R6
+!s110 1588082744
 !i10b 1
-!s100 dRDGMA98V`onCdinTni?f2
-I`o[oP2>@NMWOUbfikDIeD3
+!s100 nPQm65B<G90>d7_Pb_[OV2
+I<RVe`FG`Tc6I9BAPZXUXz1
 R0
 R1
-w1588047103
+w1588082637
 8C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/state_control.v
 FC:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/state_control.v
 L0 15
@@ -172,7 +172,7 @@ R2
 r1
 !s85 0
 31
-R7
+!s108 1588082743.000000
 !s107 C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/state_control.v|
 !s90 -reportprogress|300|-work|work|-stats=none|C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/state_control.v|
 !s101 -O0
