@@ -33,6 +33,7 @@ module state_control(clk, reset_n, jal, branch, mem_read, mem_write, readM, writ
             `IF1: begin
                 pvs_write_en = 0;
                 readM = 1;
+                writeM = 0;
                 i_or_d = 0;
                 ir_write = 1;
                 next_state = `IF2;   
@@ -54,7 +55,6 @@ module state_control(clk, reset_n, jal, branch, mem_read, mem_write, readM, writ
                 end
             end
             `ID: begin
-      
                 next_state = `EX1;
             end
             `EX1: begin

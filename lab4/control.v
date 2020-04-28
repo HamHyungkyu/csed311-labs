@@ -38,7 +38,7 @@ module control(instr, jal, branch, mem_read, mem_write, alu_src, reg_write, mem_
         branch = br;
         mem_write = sw;
         alu_src = itype;
-        reg_write = jp | (itype & ~sw) | rtype;
+        reg_write = (jp &(instr[3] & ~instr[2] &~instr[1] & instr[0] )) | (itype & ~sw) | rtype;
         mem_to_reg = lw;
         mem_read = lw;
     end

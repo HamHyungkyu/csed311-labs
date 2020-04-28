@@ -24,7 +24,7 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 
 	// Register File
 	reg [1:0] rs, rt, rd;
-	reg [1:0] write_reg;
+	wire [1:0] write_reg;
 	wire [`WORD_SIZE-1:0] wb;
 	wire [`WORD_SIZE-1:0] read_out1, read_out2;
 	reg [3:0] opcode;
@@ -34,7 +34,7 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 	reg [11:0] target_addr;
 
 	// ALU
-	reg [`WORD_SIZE-1:0] A, B;
+	wire [`WORD_SIZE-1:0] A, B;
 	wire [2:0] ALU_func;
 	wire [`WORD_SIZE-1:0] C;
 
@@ -44,6 +44,9 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 	reg pc_to_reg;
 
 	assign data = i_or_d ? read_out2 : `WORD_SIZE'bz;
+	assign A = read_out1;
+	assign B = alu_src ? sign_extended_imm : read_out2;
+	assign write_reg = alu_src ? rt : rd;
 
 	//Contorl signal module
 	control CONTROL(.instr(opcode), .jal(jal), .branch(branch), .mem_read(mem_read), .mem_write(mem_write), .alu_src(alu_src),
@@ -61,7 +64,7 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 	register_file REG( 
 		.read1(rs),
 		.read2(rt), 
-		.write_reg(rd), 
+		.write_reg(write_reg), 
 		.write_data(wb), 
 		.reg_write(reg_write), 
 		.read_out1(read_out1), 
@@ -71,7 +74,7 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 	);
 
 	// ALU Module 
-	alu ALU(.A(read_out1), .B(read_out2), .funcCode(ALU_func), .C(C));
+	alu ALU(.A(A), .B(B), .funcCode(ALU_func), .C(C));
 
 	//Todo :PC controller & Branch condition
 	//pcsrc1 = jal || (branch && bcond);
@@ -120,11 +123,9 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 			`JAL_OP: begin
 				rd = 2;
 				pc_to_reg = 1;
-				pc = {4'd0, target_addr};
 			end
 			`JMP_OP: begin
 				pc_to_reg = 1;
-				pc = {4'd0, target_addr};
 			end
 			`ALU_OP: begin
 				case(func)
@@ -144,7 +145,7 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 				pc_to_reg = 0;
 			end
 		endcase
-		next_pc = (jalr == 0) ? ((jal || (branch && bcond)) ? pc + sign_extended_imm : pc + 1) : (C);
+		next_pc = (jalr == 0) ? ((jal || (branch && bcond)) ? pc + sign_extended_imm : pc + 1) :  {4'd0, target_addr};
 	end
 
 	always @(posedge clk) begin
