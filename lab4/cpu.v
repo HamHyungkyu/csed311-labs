@@ -37,7 +37,7 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 	wire [`WORD_SIZE-1:0] A, B;
 	wire [2:0] ALU_func;
 	wire [`WORD_SIZE-1:0] C;
-
+	wire skip_write_reg;
 	//
 	reg bcond;
 	reg jalr;
@@ -57,7 +57,7 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 	// ALU Control Module
 	// Todo : Should add PC to reg signal
 	alu_control ALU_CONTROL(.aluOp(opcode), .instFuncCode(func), .alu_src(alu_src), .read_out1(read_out1), .read_out2(read_out2), 
-	.sign_extended_imm(sign_extended_imm), .A(A), .B(B), .funcCode(ALU_func));
+	.sign_extended_imm(sign_extended_imm), .A(A), .B(B), .funcCode(ALU_func), .skip_write_reg(skip_write_reg));
 
 	// Register File Module
 	register_file REG( 
@@ -65,7 +65,7 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 		.read2(rt), 
 		.write_reg(write_reg), 
 		.write_data(wb), 
-		.reg_write(reg_write), 
+		.reg_write(reg_write & ~skip_write_reg), 
 		.read_out1(read_out1), 
 		.read_out2(read_out2), 
 		.clk(clk),
@@ -103,6 +103,7 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 			imm = data[7:0];
 			if(imm[7] == 1) sign_extended_imm = {8'hff, imm};
 			else sign_extended_imm = {8'h00, imm};
+			$display("INSTRUCTION opcode: %d|rs: %d|rt %d|rd %d|imm %d|func %d", opcode, rs, rt, rd, sign_extended_imm, func);
 		end
 		//Todo:
 		//bcond

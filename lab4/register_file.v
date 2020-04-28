@@ -25,8 +25,14 @@ module register_file(read1, read2, write_reg, write_data, reg_write, read_out1, 
 
     //Write
     always @(posedge clk) begin
+
     	if(reg_write && pvs_write_en) begin
     		registers[write_reg] <= write_data;
+            $display("reg 0 %d", registers[0]);
+            $display("reg 1 %d", registers[1]);
+            $display("reg 2 %d", registers[2]);
+            $display("reg 3 %d", registers[3]);
+
     	end
     end
 endmodule
