@@ -22,25 +22,25 @@ module alu_control(aluOp, instFuncCode, alu_src, read_out1, read_out2, sign_exte
         case (aluOp)
             `ALU_OP: begin
                     case (instFuncCode)
-                        `INST_FUNC_ADD: begin funcCode = `FUNC_ADD; A = read_out1; B = read_out2; skip_write_reg <= 0;end
-                        `INST_FUNC_SUB: begin funcCode = `FUNC_SUB; A = read_out1; B = read_out2; skip_write_reg <= 0;end
-                        `INST_FUNC_AND: begin funcCode = `FUNC_AND; A = read_out1; B = read_out2; skip_write_reg <= 0;end
-                        `INST_FUNC_ORR: begin funcCode = `FUNC_ORR; A = read_out1; B = read_out2; skip_write_reg <= 0;end
-                        `INST_FUNC_NOT: begin funcCode = `FUNC_NOT; A = read_out1; B = read_out2; skip_write_reg <= 0;end
-                        `INST_FUNC_TCP: begin funcCode = `FUNC_TCP; A = read_out1; B = read_out2; skip_write_reg <= 0;end
-                        `INST_FUNC_SHL: begin funcCode = `FUNC_SHL; A = read_out1; B = 1; skip_write_reg <= 0;end
-                        `INST_FUNC_SHR: begin funcCode = `FUNC_SHR; A = read_out1; B = 1; skip_write_reg <= 0;end
-                        `INST_FUNC_JRL: begin funcCode = `FUNC_SHR; A = read_out1; B = 1; skip_write_reg <= 0;end
-                        default: begin funcCode = `FUNC_ADD; A = read_out1; B = read_out2; skip_write_reg <= 1;end // WWD and HALT skip register write
+                        `INST_FUNC_ADD: begin funcCode = `FUNC_ADD; A = read_out1; B = read_out2; skip_write_reg = 0;end
+                        `INST_FUNC_SUB: begin funcCode = `FUNC_SUB; A = read_out1; B = read_out2; skip_write_reg = 0;end
+                        `INST_FUNC_AND: begin funcCode = `FUNC_AND; A = read_out1; B = read_out2; skip_write_reg = 0;end
+                        `INST_FUNC_ORR: begin funcCode = `FUNC_ORR; A = read_out1; B = read_out2; skip_write_reg = 0;end
+                        `INST_FUNC_NOT: begin funcCode = `FUNC_NOT; A = read_out1; B = read_out2; skip_write_reg = 0;end
+                        `INST_FUNC_TCP: begin funcCode = `FUNC_TCP; A = read_out1; B = read_out2; skip_write_reg = 0;end
+                        `INST_FUNC_SHL: begin funcCode = `FUNC_SHL; A = read_out1; B = 1; skip_write_reg = 0;end
+                        `INST_FUNC_SHR: begin funcCode = `FUNC_SHR; A = read_out1; B = 1; skip_write_reg = 0;end
+                        `INST_FUNC_JRL: begin funcCode = `FUNC_ADD; A = read_out1; B = read_out2; skip_write_reg = 0;end
+                        default: begin funcCode = `FUNC_ADD; A = read_out1; B = read_out2; skip_write_reg = 1;end // WWD and HALT skip register write
                     endcase
                 end
-            `ADI_OP: begin funcCode = `FUNC_ADD; A = read_out1; B = sign_extended_imm; skip_write_reg <= 0;end
-            `ORI_OP: begin funcCode = `FUNC_ORR; A = read_out1; B = sign_extended_imm; skip_write_reg <= 0;end
-            `LHI_OP: begin funcCode = `FUNC_SHL; A = sign_extended_imm; B = 8; skip_write_reg <= 0;end
-            `LWD_OP: begin funcCode = `FUNC_ADD; A = read_out1; B = sign_extended_imm; skip_write_reg <= 0;end
-            `SWD_OP: begin funcCode = `FUNC_ADD; A = read_out1; B = sign_extended_imm; skip_write_reg <= 0;end
-            `JAL_OP: begin funcCode = `FUNC_ADD; A = read_out1; B = sign_extended_imm; skip_write_reg <= 0;end     
-            default: begin funcCode = `FUNC_ADD; A = read_out1; B = sign_extended_imm; skip_write_reg <= 1;end
+            `ADI_OP: begin funcCode = `FUNC_ADD; A = read_out1; B = sign_extended_imm; skip_write_reg = 0;end
+            `ORI_OP: begin funcCode = `FUNC_ORR; A = read_out1; B = sign_extended_imm; skip_write_reg = 0;end
+            `LHI_OP: begin funcCode = `FUNC_SHL; A = sign_extended_imm; B = 8; skip_write_reg = 0;end
+            `LWD_OP: begin funcCode = `FUNC_ADD; A = read_out1; B = sign_extended_imm; skip_write_reg = 0;end
+            `SWD_OP: begin funcCode = `FUNC_ADD; A = read_out1; B = sign_extended_imm; skip_write_reg = 0;end
+            `JAL_OP: begin funcCode = `FUNC_ADD; A = read_out1; B = sign_extended_imm; skip_write_reg = 0;end     
+            default: begin funcCode = `FUNC_ADD; A = read_out1; B = sign_extended_imm; skip_write_reg = 1;end
         endcase 
     end
 endmodule

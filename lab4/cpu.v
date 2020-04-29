@@ -42,7 +42,7 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 	reg bcond;
 	reg jalr;
 	reg pc_to_reg;
-	reg [`WORD_SIZE-1:0] data_cpy;
+	reg [`WORD_SIZE-1:0] data_cpy; // Store input from data to avid 'z'
 
 	assign data = i_or_d ? read_out2 : `WORD_SIZE'bz;
 	assign write_reg = alu_src ? rt : rd;
@@ -56,7 +56,6 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 	 .readM(readM), .writeM(writeM) ,.pvs_write_en(pvs_write_en), .i_or_d(i_or_d), .ir_write(ir_write));
 	
 	// ALU Control Module
-	// Todo : Should add PC to reg signal
 	alu_control ALU_CONTROL(.aluOp(opcode), .instFuncCode(func), .alu_src(alu_src), .read_out1(read_out1), .read_out2(read_out2), 
 	.sign_extended_imm(sign_extended_imm), .A(A), .B(B), .funcCode(ALU_func), .skip_write_reg(skip_write_reg));
 
@@ -76,15 +75,9 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 	// ALU Module 
 	alu ALU(.A(A), .B(B), .funcCode(ALU_func), .C(C));
 
-	//Todo :PC controller & Branch condition
-	//pcsrc1 = jal || (branch && bcond);
-	//pcsrc2 = jalr;
-	//Todo : Assign wb
+	//Assign wires
 	assign address = ((mem_read & ~ir_write & readM) | (mem_write & ~ir_write & writeM))? C : pc; // sign_extended_imm
 	assign wb = (pc_to_reg == 1) ? (pc + 1) : ((mem_to_reg == 1) ? data_cpy : C); // data fix
-
-	//Todo : num_inst, output_port, is_halted
-	// num_inst += 1 when state go to IF1 on ppt.
 	assign output_port = ((opcode == 15) && (func == 28)) ? read_out1 : 0; // else 0? to xx?
 	assign is_halted = (opcode == 15) && (func == 29);
 
@@ -108,31 +101,28 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 			imm = data_cpy[7:0];
 			if(imm[7] == 1) sign_extended_imm = {8'hff, imm};
 			else sign_extended_imm = {8'h00, imm};
-			$display("INSTRUCTION [%h]opcode: %d|rs: %d|rt %d|rd %d|imm %d|func %d| target %h", pc,opcode, rs, rt, rd, sign_extended_imm, func, target_addr);
 			bcond = 0;
+			jalr = 0;
 			pc_to_reg = 0;
 		end
-		//bcond
+
+		//Branch and jump control
 		case(opcode)
 			`BNE_OP: begin
 				if(read_out1 != read_out2) bcond = 1;
 				else bcond = 0;
-				$display("%h bcond %d", pc,bcond);
 			end
 			`BEQ_OP: begin
 				if(read_out1 == read_out2) bcond = 1;
 				else bcond = 0;
-				$display("%h bcond %d", pc,bcond);
 			end
 			`BGZ_OP: begin
 				if(read_out1[15] == 0 && read_out1 > 0) bcond = 1;
 				else bcond = 0;
-				$display("%h bcond %d", pc,bcond);
 			end
 			`BLZ_OP: begin
 				if(read_out1[15] == 1) bcond = 1;
 				else bcond = 0;
-				$display("%h bcond %d", pc,bcond);
 			end
 			`JAL_OP: begin
 				rd = 2;
@@ -151,7 +141,6 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 						rd = 2;
 						pc_to_reg = 1;
 					end
-					default: jalr = 0;
 				endcase
 			end
 		endcase

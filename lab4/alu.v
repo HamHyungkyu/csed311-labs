@@ -23,7 +23,7 @@ module alu (A, B, funcCode, C);
 			`FUNC_ORR: begin C = A | B; end
 			`FUNC_TCP: begin C = ~A + 1; end
 			`FUNC_SHL: begin C = A << B; end
-			`FUNC_SHR: begin C = A >> B; end
+			`FUNC_SHR: begin C = {A[`NumBits-1],A[`NumBits -1: 1]} ; end
 		endcase
 	end
 endmodule

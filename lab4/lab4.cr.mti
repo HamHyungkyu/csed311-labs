@@ -1,19 +1,9 @@
-{C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/control.v} {1 {vlog -work work -stats=none {C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/control.v}
+{C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/state_control.v} {1 {vlog -work work -stats=none {C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/state_control.v}
 Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
--- Compiling module control
+-- Compiling module state_control
 
 Top level modules:
-	control
-
-} {} {}} {C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/opcodes.v} {1 {vlog -work work -stats=none {C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/opcodes.v}
-Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
-
-} {} {}} {C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/cpu_TB.v} {1 {vlog -work work -stats=none {C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/cpu_TB.v}
-Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
--- Compiling module cpu_TB
-
-Top level modules:
-	cpu_TB
+	state_control
 
 } {} {}} {C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/Memory.v} {1 {vlog -work work -stats=none {C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/Memory.v}
 Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
@@ -22,12 +12,22 @@ Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 
 Top level modules:
 	Memory
 
-} {} {}} {C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/state_control.v} {1 {vlog -work work -stats=none {C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/state_control.v}
+} {} {}} {C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/opcodes.v} {1 {vlog -work work -stats=none {C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/opcodes.v}
 Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
--- Compiling module state_control
+
+} {} {}} {C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/control.v} {1 {vlog -work work -stats=none {C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/control.v}
+Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
+-- Compiling module control
 
 Top level modules:
-	state_control
+	control
+
+} {} {}} {C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/cpu_TB.v} {1 {vlog -work work -stats=none {C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/cpu_TB.v}
+Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
+-- Compiling module cpu_TB
+
+Top level modules:
+	cpu_TB
 
 } {} {}} {C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/alu_control.v} {2 {vlog -work work -stats=none {C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/alu_control.v}
 Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
