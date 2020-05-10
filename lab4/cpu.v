@@ -56,7 +56,7 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 	 .readM(readM), .writeM(writeM) ,.pvs_write_en(pvs_write_en), .i_or_d(i_or_d), .ir_write(ir_write));
 	
 	// ALU Control Module
-	alu_control ALU_CONTROL(.aluOp(opcode), .instFuncCode(func), .alu_src(alu_src), .read_out1(read_out1), .read_out2(read_out2), 
+	alu_control ALU_CONTROL(.aluOp(opcode), .instFuncCode(func), .alu_src(alu_src), .read_out1(read_out1), .read_out2(read_out2), .pc(pc), 
 	.sign_extended_imm(sign_extended_imm), .A(A), .B(B), .funcCode(ALU_func), .skip_write_reg(skip_write_reg));
 
 	// Register File Module
@@ -144,7 +144,7 @@ module cpu(clk, reset_n, readM, writeM, address, data, num_inst, output_port, is
 				endcase
 			end
 		endcase
-		next_pc = (jalr == 0) ? (jal  ? target_addr : ((branch && bcond)? pc + sign_extended_imm + 1 :pc + 1)) : read_out1;
+		next_pc = (jalr == 0) ? (jal  ? target_addr : ((branch && bcond)? C + 1 : pc + 1)) : read_out1;
 	end
 
 	always @(posedge clk) begin
