@@ -33,7 +33,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	reg [`WORD_SIZE-1:0] pc, next_pc;
 
 	//ALU wries
-	wire [`WORD_SIZE-1:0] A, B, C;
+	wire [`WORD_SIZE-1:0] A, B, C, sign_extended_imm;
 	wire [2:0] ALU_FUNC;
 	
 	//Register file
@@ -72,6 +72,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	assign wb = mem_wb_mem_to_reg ? mem_wb_read_data : mem_wb_alu_result;
 	//ALU 
 	// 아직 forwarding 고려 안한 상태
+	assign sign_extended_imm = (if_id_instruction[7] == 1)? {8'hff, if_id_instruction[7:0]} : {8'h00, if_id_instruction[7:0]};
 	assign A = id_ex_read_out1;
 	assign B = id_ex_alu_src ? id-id_ex_sign_extended_imm : id_ex_read_out2;
 	//Data memory
@@ -113,7 +114,33 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 			init();
 		end
 		else begin
+			if_id_instruction <= data1;
 			
+			id_ex_alu_op <= alu_op;
+			id_ex_alu_src <= alu_src;
+			id_ex_reg_dest <= reg_dest;
+			id_ex_mem_read <= mem_read;
+			id_ex_mem_to_reg <= mem_to_reg;
+			id_ex_mem_write <= mem_write;
+			id_ex_reg_write <= reg_write;
+			id_ex_rd <= if_id_instruction[7:6];
+			id_ex_read_out1 <= read_out1;
+			id_ex_read_out2 <= read_out2;
+			id_ex_sign_extended_imm <= sign_extended_imm;
+
+			ex_mem_alu_result <= C;
+			ex_mem_read_out2 <= id_ex_read_out2;
+			ex_mem_dest <= id_ex_reg_dest ? //Todo  : id_ex_rd;
+			ex_mem_mem_read <= id_ex_mem_read;
+			ex_mem_mem_write <= id_ex_mem_write;
+			ex_mem_mem_to_reg <= id_ex_mem_to_reg;
+			ex_mem_reg_write <= id_ex_reg_write;
+
+			mem_wb_dest <= ex_mem_dest;
+			mem_wb_alu_result <= ex_mem_alu_result;
+			mem_wb_read_data <= data2;
+			mem_wb_mem_to_reg <= ex_mem_mem_to_reg;
+			mem_wb_reg_write <= ex_mem_reg_write;
 		end
 	end
 
