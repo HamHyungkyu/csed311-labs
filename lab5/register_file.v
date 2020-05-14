@@ -1,4 +1,4 @@
-module register_file(read1, read2, write_reg, write_data, reg_write, read_out1, read_out2, clk, pvs_write_en); 
+module register_file(read1, read2, write_reg, write_data, reg_write, read_out1, read_out2, clk); 
     output [15:0] read_out1;
     output [15:0] read_out2;
     input [1:0] read1;
@@ -26,7 +26,7 @@ module register_file(read1, read2, write_reg, write_data, reg_write, read_out1, 
     //Write
     always @(posedge clk) begin
 
-    	if(reg_write && pvs_write_en) begin
+    	if(reg_write) begin
     		registers[write_reg] <= write_data;
     	end
     end
