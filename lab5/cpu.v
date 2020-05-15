@@ -44,14 +44,14 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	wire reg_write;
 
 	//Control 
-	wire alu_src, mem_write, mem_read, reg_write, mem_to_reg;
-	wire [1:0] reg_dest;
+	wire  mem_write, mem_read, reg_write, mem_to_reg;
+	wire [1:0] alu_src, reg_dest;
 	wire [2:0] alu_op;
 
 	//Pipeline latches
 	//from control
 	reg [`WORD_SIZE-1:0] if_id_instruction;
-	reg id_ex_alu_src, id_ex_reg_dest;
+	reg [1:0] id_ex_alu_src, id_ex_reg_dest;
 	reg [3:0] id_ex_alu_op;
 	reg id_ex_mem_write, id_ex_mem_read, ex_mem_mem_write, ex_mem_mem_read;
 	reg id_ex_reg_write, id_ex_mem_to_reg, ex_mem_reg_write, ex_mem_mem_to_reg, mem_wb_reg_write, mem_wb_mem_to_reg;
@@ -77,7 +77,12 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	// 아직 forwarding 고려 안한 상태
 	assign sign_extended_imm = (if_id_instruction[7] == 1)? {8'hff, if_id_instruction[7:0]} : {8'h00, if_id_instruction[7:0]};
 	assign A = id_ex_read_out1;
-	assign B = id_ex_alu_src ? id-id_ex_sign_extended_imm : id_ex_read_out2;
+	case (id_ex_alu_src)
+		 2'b00: assign B = id_ex_read_out2;
+		 2'b01: assign B = sign_extended_imm;
+		 2'b10: assign B = 1;
+		 2'b11: assign B = 8;
+	endcase
 	assign ALU_FUNC = alu_op; 
 	//Data memory
 	assign address2 = ex_mem_alu_result;
@@ -135,7 +140,12 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 
 			ex_mem_alu_result <= C;
 			ex_mem_read_out2 <= id_ex_read_out2;
-			ex_mem_dest <= id_ex_reg_dest ? id_ex_rt  : id_ex_rd;
+			if(reg_dest == 2'b00) 
+				ex_mem_dest <= id_ex_rd;
+			else if (reg_dest == 2'b01)
+				ex_mem_dest <= id_ex_rt;
+			else 
+				ex_mem_dest <= 2'b10;
 			ex_mem_mem_read <= id_ex_mem_read;
 			ex_mem_mem_write <= id_ex_mem_write;
 			ex_mem_mem_to_reg <= id_ex_mem_to_reg;
