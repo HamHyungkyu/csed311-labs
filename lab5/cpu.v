@@ -24,7 +24,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	wire [`WORD_SIZE-1:0] data2;
 
 	output [`WORD_SIZE-1:0] num_inst;
-	wire [`WORD_SIZE-1:0] num_inst;
+	reg [`WORD_SIZE-1:0] num_inst;
 	output [`WORD_SIZE-1:0] output_port;
 	wire [`WORD_SIZE-1:0] output_port;
 	output is_halted;
@@ -43,7 +43,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	wire [`WORD_SIZE-1:0] read_out1, read_out2;
 
 	//Control 
-	wire  mem_write, mem_read, reg_write, mem_to_reg;
+	wire  mem_write, mem_read, reg_write, mem_to_reg, is_wwd, is_cur_inst_halted;
 	wire [1:0] alu_src, reg_dest;
 	wire [2:0] alu_op;
 
@@ -51,11 +51,13 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	wire [1:0] forwardA;
 	wire [1:0] forwardB;
 
+	reg instruction_fetech;
 	//Pipeline latches
 	//from control
 	reg [`WORD_SIZE-1:0] if_id_instruction;
 	reg [1:0] id_ex_alu_src, id_ex_reg_dest;
-	reg [3:0] id_ex_alu_op;
+	reg [2:0] id_ex_alu_op;
+	reg id_ex_is_halted, id_ex_is_wwd;
 	reg id_ex_mem_write, id_ex_mem_read, ex_mem_mem_write, ex_mem_mem_read;
 	reg id_ex_reg_write, id_ex_mem_to_reg, ex_mem_reg_write, ex_mem_mem_to_reg, mem_wb_reg_write, mem_wb_mem_to_reg;
 	//from instruction
@@ -70,6 +72,12 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	reg [`WORD_SIZE-1:0] mem_wb_read_data;
 
 	//Assign wires
+	assign address1 = pc;
+	assign readM1 = instruction_fetech;
+	assign data1 = `WORD_SIZE'bz;
+	assign data2 = mem_write ? ex_mem_read_out2 : `WORD_SIZE'bz; 
+	assign output_port = id_ex_is_wwd ? A : 0; 
+	assign is_halted = id_ex_is_halted;
 	//regfile
 	assign rs = if_id_instruction[11:10];
 	assign rt = if_id_instruction[9:8];
@@ -92,7 +100,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	assign address2 = ex_mem_alu_result;
 	assign readM2 = ex_mem_mem_read;
 	assign writeM2 = ex_mem_mem_write;
-
+	
 	alu ALU(.A(A), .B(B), .funcCode(ALU_FUNC), .C(C));
 	register_file REG( 
 		.read1(rs),
@@ -102,7 +110,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 		.reg_write(reg_write), 
 		.read_out1(read_out1), 
 		.read_out2(read_out2), 
-		.clk(clk)
+		.clk(Clk)
 	);
 	control CONTROL(
 		.instruction(if_id_instruction), 
@@ -112,13 +120,15 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 		.mem_write(mem_write), 
 		.mem_read(mem_read), 
 		.reg_write(reg_write), 
-		.mem_to_reg(mem_to_reg)
+		.mem_to_reg(mem_to_reg),
+		.is_halted(is_cur_inst_halted),
+		.is_wwd(is_wwd)
 	);
 	forwarding_unit FORWARDING(
 		.ID_EX_Rs(id_ex_rs),
 		.ID_EX_Rt(id_ex_rt),
 		.EX_MEM_Reg_Rd(ex_mem_dest),
-		.MEM_WB_Reg_R(mem_wb_dest),
+		.MEM_WB_Reg_Rd(mem_wb_dest),
 		.RegWrite_MEM(ex_mem_reg_write),
 		.RegWrite_WB(mem_wb_reg_write),
 		.ForwardA(forwardA),
@@ -130,7 +140,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	end
 
 	always @(*) begin
-		
+		next_pc = pc + 1;
 	end
 
 	always @(posedge Clk) begin
@@ -138,6 +148,12 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 			init();
 		end
 		else begin
+			if(!is_cur_inst_halted) begin
+				pc <= next_pc;
+				num_inst <= num_inst + 1;
+				instruction_fetech <= 1;
+			end
+
 			if_id_instruction <= data1;
 			
 			id_ex_alu_op <= alu_op;
@@ -153,6 +169,8 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 			id_ex_read_out1 <= read_out1;
 			id_ex_read_out2 <= read_out2;
 			id_ex_sign_extended_imm <= sign_extended_imm;
+			id_ex_is_halted <= is_cur_inst_halted;
+			id_ex_is_wwd <= is_wwd;
 
 			ex_mem_alu_result <= C;
 			ex_mem_read_out2 <= id_ex_read_out2;
@@ -177,7 +195,9 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 
 	task init; 
 	begin
-
+		pc <= 0;
+		next_pc <= 1;
+		num_inst <= 0;
 	end
 	endtask
 

@@ -1,16 +1,18 @@
 `include "opcodes.v"
 `define WORD_SIZE 16    // data and address word size
 
-module control(instruction, alu_src, alu_op, reg_dest, mem_write, mem_read, reg_write, mem_to_reg);
+module control(instruction, alu_src, alu_op, reg_dest, mem_write, mem_read, reg_write, mem_to_reg, is_halted, is_wwd);
     input [`WORD_SIZE-1:0] instruction;
     output reg [1:0] alu_src;
-    output reg alu_op;
+    output reg [2:0] alu_op;
     output reg [1:0] reg_dest;
     output reg mem_write;
     output reg mem_read;
     output reg reg_write;
     output reg mem_to_reg;
- 
+    output reg is_halted;
+    output reg is_wwd;
+
     wire [3:0] opcode;
     wire [5:0] alu_instruction;
     wire rtype, itype, jtype, load, store, branch;
@@ -23,11 +25,25 @@ module control(instruction, alu_src, alu_op, reg_dest, mem_write, mem_read, reg_
     assign branch = ~opcode[3] & ~opcode[2]; //0 ~3
     assign jtype =  opcode[3] & ~opcode[2] & (opcode[1] ^ opcode[0]); // 9, 10
 
+    initial begin
+        alu_src <= 2'b0;
+        alu_op <= `FUNC_ADD;
+        reg_dest <= 2'b0;
+        mem_write <= 0;
+        mem_read <= 0;
+        reg_write <= 0;
+        mem_to_reg <= 0;
+        is_halted <= 0;
+        is_wwd <= 0;
+    end
+
     //Combinational logic for output
     always @(*) begin
         mem_read = load;
         mem_to_reg = load;
         mem_write = store;
+        is_halted = rtype && alu_instruction == `INST_FUNC_HLT;
+        is_wwd = rtype && alu_instruction == `INST_FUNC_WWD;
 
         if(rtype && (alu_instruction == `INST_FUNC_SHL || alu_instruction == `INST_FUNC_SHR))
             alu_src = 2'b10;
