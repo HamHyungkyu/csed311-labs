@@ -48,6 +48,10 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	wire [1:0] alu_src, reg_dest;
 	wire [2:0] alu_op;
 
+	//Forwarding
+	wire [1:0] forwardA;
+	wire [1:0] forwardB;
+
 	//Pipeline latches
 	//from control
 	reg [`WORD_SIZE-1:0] if_id_instruction;
@@ -74,15 +78,16 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	assign wb = mem_wb_mem_to_reg ? mem_wb_read_data : mem_wb_alu_result;
 	assign rd = mem_wb_dest;
 	//ALU 
-	// 아직 forwarding 고려 안한 상태
+	//Forwarding Considered
 	assign sign_extended_imm = (if_id_instruction[7] == 1)? {8'hff, if_id_instruction[7:0]} : {8'h00, if_id_instruction[7:0]};
-	assign A = id_ex_read_out1;
-	case (id_ex_alu_src)
-		 2'b00: assign B = id_ex_read_out2;
-		 2'b01: assign B = sign_extended_imm;
-		 2'b10: assign B = 1;
-		 2'b11: assign B = 8;
-	endcase
+	assign A = (forwardA == 2'b00) ? id_ex_read_out1 
+		: ((forwardA == 2'b01) ? mem_wb_alu_result 
+		: ex_mem_alu_result); 
+	assign B = (id_ex_alu_src == 2'b01) ? id_ex_sign_extended_imm 
+	: (id_ex_alu_src == 2'b10) ? 1
+	: (id_ex_alu_src == 2'b11) ? 8
+	: ((forwardB == 2'b00) ? id_ex_read_out2 : 
+	((forwardB == 2'b01) ? mem_wb_alu_result : ex_mem_alu_result));
 	assign ALU_FUNC = alu_op; 
 	//Data memory
 	assign address2 = ex_mem_alu_result;
@@ -108,7 +113,18 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 		.mem_write(mem_write), 
 		.mem_read(mem_read), 
 		.reg_write(reg_write), 
-		.mem_to_reg(mem_to_reg));
+		.mem_to_reg(mem_to_reg)
+	);
+	forwarding_unit FORWARDING(
+		.ID_EX_Rs(),
+		.ID_EX_Rt(),
+		.EX_MEM_Reg_Rd(),
+		.MEM_WB_Reg_R(),
+		.RegWrite_MEM(),
+		.RegWrite_WB(),
+		.ForwardA(forwardA),
+		.ForwardB(forwardB)
+	);
 
 	initial begin
 		init();
