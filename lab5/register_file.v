@@ -7,7 +7,6 @@ module register_file(read1, read2, write_reg, write_data, reg_write, read_out1, 
     input [15:0] write_data;
     input clk;
     input reg_write;
-    input pvs_write_en;
 
     reg [15:0] registers [3:0];
 

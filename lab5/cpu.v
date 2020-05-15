@@ -41,7 +41,6 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	wire [1:0] write_reg;
 	wire [`WORD_SIZE-1:0] wb;
 	wire [`WORD_SIZE-1:0] read_out1, read_out2;
-	wire reg_write;
 
 	//Control 
 	wire  mem_write, mem_read, reg_write, mem_to_reg;
@@ -103,7 +102,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 		.reg_write(reg_write), 
 		.read_out1(read_out1), 
 		.read_out2(read_out2), 
-		.clk(clk),
+		.clk(clk)
 	);
 	control CONTROL(
 		.instruction(if_id_instruction), 

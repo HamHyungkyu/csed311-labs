@@ -38,11 +38,11 @@ module control(instruction, alu_src, alu_op, reg_dest, mem_write, mem_read, reg_
         else
             alu_src = 2'b00;
 
-        reg_write = ((rtype 
+        reg_write = (rtype 
             && (alu_instruction != `INST_FUNC_HLT 
             && alu_instruction != `INST_FUNC_WWD 
             && alu_instruction !=`INST_FUNC_JPR)) 
-            || (itype && (opcode > 3 && opcode < 8 )) || (opcode = 4'h9));
+            || (itype && (opcode > 3 && opcode < 8 )) || (opcode == 4'h9) ;
         
         if(opcode == 4'ha || (rtype && alu_instruction == `INST_FUNC_JRL))
             reg_dest = 2'b10;
@@ -62,7 +62,7 @@ module control(instruction, alu_src, alu_op, reg_dest, mem_write, mem_read, reg_
                     `INST_FUNC_AND: alu_op = `FUNC_AND;
                     `INST_FUNC_ORR: alu_op = `FUNC_ORR;
                     `INST_FUNC_NOT: alu_op = `FUNC_NOT;
-                    `INST_FUNC_TCP: alu_op = `FUNC_TCP:
+                    `INST_FUNC_TCP: alu_op = `FUNC_TCP;
                     `INST_FUNC_SHL: alu_op = `FUNC_SHL;
                     `INST_FUNC_SHR: alu_op = `FUNC_SHR;
                     default: alu_op = `FUNC_ADD;
