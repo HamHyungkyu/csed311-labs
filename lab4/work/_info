@@ -9,38 +9,38 @@ z2
 cModel Technology
 dC:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab3
 valu
-!s110 1589546790
+Z0 !s110 1589550308
 !i10b 1
 !s100 DfW<:7;6>HXFAAMN`=J_N1
 IoaSiRF_JnSQmlGHO0J0h@2
-Z0 VDg1SIo80bB@j0V0VzS_@n1
-Z1 dC:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4
+Z1 VDg1SIo80bB@j0V0VzS_@n1
+Z2 dC:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4
 w1589461220
 8C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab5/alu.v
 FC:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab5/alu.v
 L0 5
-Z2 OP;L;10.4a;61
+Z3 OP;L;10.4a;61
 r1
 !s85 0
 31
-!s108 1589546790.000000
+Z4 !s108 1589550308.000000
 !s107 opcodes.v|C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab5/alu.v|
 !s90 -reportprogress|300|-work|work|-stats=none|C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab5/alu.v|
 !s101 -O0
 !i113 1
-Z3 o-work work -L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact -O0
+Z5 o-work work -L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact -O0
 valu_control
 !s110 1588121988
 !i10b 1
 !s100 ;>O@8=9H@0^ZUE6j_5?4X3
 IJLa^Vc`Ra[b_FE0HBR1FN2
-R0
 R1
+R2
 w1588094061
 8C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/alu_control.v
 FC:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/alu_control.v
 L0 4
-R2
+R3
 r1
 !s85 0
 31
@@ -49,168 +49,168 @@ r1
 !s90 -reportprogress|300|-work|work|-stats=none|C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/alu_control.v|
 !s101 -O0
 !i113 1
-R3
+R5
 vcontrol
-!s110 1589546819
-!i10b 1
-!s100 7AojQVD@0M^I6H`Rld96U0
-I_djCK_e?KA470>X_^YZQ_0
 R0
+!i10b 1
+!s100 QGzTbC0`[zz^d7YZ^YbT;2
+IPiZ[o59`KSX6J;YDXCZNO3
 R1
-w1589546815
+R2
+w1589549172
 8C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab5/control.v
 FC:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab5/control.v
 L0 4
-R2
+R3
 r1
 !s85 0
 31
-!s108 1589546819.000000
+R4
 !s107 opcodes.v|C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab5/control.v|
 !s90 -reportprogress|300|-work|work|-stats=none|C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab5/control.v|
 !s101 -O0
 !i113 1
-R3
+R5
 vcpu
-Z4 !s110 1589546791
-!i10b 1
-!s100 1LWMFabU@K3RmQ:CI=Rj]0
-IHUz>WMAEBgVG_bS2;aDd_3
 R0
+!i10b 1
+!s100 fE_ljG=4of2`NB5XZYCGP3
+IgfLSdGdacY^G;mPOLFB6W3
 R1
-w1589546781
-8C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab5/cpu.v
-FC:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab5/cpu.v
-L0 4
 R2
+w1589550286
+8C:\Users\hhk97\OneDrive - postech.ac.kr\4-1\Computer Architecture\labs\lab5\cpu.v
+FC:\Users\hhk97\OneDrive - postech.ac.kr\4-1\Computer Architecture\labs\lab5\cpu.v
+L0 4
+R3
 r1
 !s85 0
 31
-Z5 !s108 1589546791.000000
-!s107 C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab5/cpu.v|
-!s90 -reportprogress|300|-work|work|-stats=none|C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab5/cpu.v|
+R4
+!s107 C:\Users\hhk97\OneDrive - postech.ac.kr\4-1\Computer Architecture\labs\lab5\cpu.v|
+!s90 -reportprogress|300|-work|work|-stats=none|C:\Users\hhk97\OneDrive - postech.ac.kr\4-1\Computer Architecture\labs\lab5\cpu.v|
 !s101 -O0
 !i113 1
-R3
+R5
 vcpu_TB
-R4
+R0
 !i10b 1
 !s100 o7hZfX3O27ZzVAbjEUU8K0
 Ikh;T<M]:41;U4OABFcM5h3
-R0
 R1
+R2
 w1589537412
 8C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab5/cpu_TB.v
 FC:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab5/cpu_TB.v
 L0 8
-R2
+R3
 r1
 !s85 0
 31
-R5
+R4
 !s107 C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab5/cpu_TB.v|
 !s90 -reportprogress|300|-work|work|-stats=none|C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab5/cpu_TB.v|
 !s101 -O0
 !i113 1
-R3
+R5
 ncpu_@t@b
 vforwarding_unit
-R4
+R0
 !i10b 1
 !s100 faR4;b<Ob^ZjVf?QbY7:`2
 Ii2Qzo0<hL[e7@0XR8iNBC1
-R0
 R1
+R2
 w1589546684
 8C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab5/forwarding_unit.v
 FC:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab5/forwarding_unit.v
 L0 3
-R2
+R3
 r1
 !s85 0
 31
-R5
+R4
 !s107 opcodes.v|C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab5/forwarding_unit.v|
 !s90 -reportprogress|300|-work|work|-stats=none|C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab5/forwarding_unit.v|
 !s101 -O0
 !i113 1
-R3
+R5
 vMemory
-R4
+Z6 !s110 1589550309
 !i10b 1
 !s100 >PhgJk2fU0caHl_S_4NbB2
 I5Eb=cGA2gCE7W1Z:=2JQ=0
-R0
 R1
+R2
 w1589537413
 8C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab5/Memory.v
 FC:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab5/Memory.v
 L0 7
-R2
+R3
 r1
 !s85 0
 31
-R5
+Z7 !s108 1589550309.000000
 !s107 C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab5/Memory.v|
 !s90 -reportprogress|300|-work|work|-stats=none|C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab5/Memory.v|
 !s101 -O0
 !i113 1
-R3
+R5
 n@memory
 vregister_file
-R4
+R6
 !i10b 1
 !s100 5mE;XGzB_8A:dcTI<7hN80
 I^KKm:Qhfnz`_F6K1IDRU33
-R0
 R1
+R2
 w1589546400
 8C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab5/register_file.v
 FC:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab5/register_file.v
 L0 1
-R2
+R3
 r1
 !s85 0
 31
-R5
+R7
 !s107 C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab5/register_file.v|
 !s90 -reportprogress|300|-work|work|-stats=none|C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab5/register_file.v|
 !s101 -O0
 !i113 1
-R3
+R5
 vsaturation_preidiction
-R4
+R6
 !i10b 1
 !s100 dX>5Di@l`J^ZHj3JG[M7e0
 IbhBSWm95IlbzaQH0FB[VE3
-R0
 R1
+R2
 w1589546034
 8C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab5/saturation_counter.v
 FC:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab5/saturation_counter.v
 L0 10
-R2
+R3
 r1
 !s85 0
 31
-R5
+R7
 !s107 opcodes.v|C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab5/saturation_counter.v|
 !s90 -reportprogress|300|-work|work|-stats=none|C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab5/saturation_counter.v|
 !s101 -O0
 !i113 1
-R3
+R5
 vstate_control
 !s110 1588091188
 !i10b 1
 !s100 nPQm65B<G90>d7_Pb_[OV2
 I<RVe`FG`Tc6I9BAPZXUXz1
-R0
 R1
+R2
 w1588082637
 8C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/state_control.v
 FC:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/state_control.v
 L0 15
-R2
+R3
 r1
 !s85 0
 31
@@ -219,4 +219,4 @@ r1
 !s90 -reportprogress|300|-work|work|-stats=none|C:/Users/hhk97/OneDrive - postech.ac.kr/4-1/Computer Architecture/labs/lab4/state_control.v|
 !s101 -O0
 !i113 1
-R3
+R5
