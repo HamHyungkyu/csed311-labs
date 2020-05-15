@@ -61,7 +61,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	reg id_ex_reg_write, id_ex_mem_to_reg, ex_mem_reg_write, ex_mem_mem_to_reg, mem_wb_reg_write, mem_wb_mem_to_reg;
 	//from instruction
 	reg [`WORD_SIZE-1:0] id_ex_sign_extended_imm;
-	reg [1:0] id_ex_rd, id_ex_rt;
+	reg [1:0] id_ex_rd, id_ex_rt, id_ex_rs;
 	reg [1:0] ex_mem_dest, mem_wb_dest;
 	//from ALU
 	reg [`WORD_SIZE-1:0] ex_mem_alu_result, mem_wb_alu_result;
@@ -116,12 +116,12 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 		.mem_to_reg(mem_to_reg)
 	);
 	forwarding_unit FORWARDING(
-		.ID_EX_Rs(),
-		.ID_EX_Rt(),
-		.EX_MEM_Reg_Rd(),
-		.MEM_WB_Reg_R(),
-		.RegWrite_MEM(),
-		.RegWrite_WB(),
+		.ID_EX_Rs(id_ex_rs),
+		.ID_EX_Rt(id_ex_rt),
+		.EX_MEM_Reg_Rd(ex_mem_dest),
+		.MEM_WB_Reg_R(mem_wb_dest),
+		.RegWrite_MEM(ex_mem_reg_write),
+		.RegWrite_WB(mem_wb_reg_write),
 		.ForwardA(forwardA),
 		.ForwardB(forwardB)
 	);
@@ -150,6 +150,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 			id_ex_reg_write <= reg_write;
 			id_ex_rd <= if_id_instruction[7:6];
 			id_ex_rt <= rt;
+			id_ex_rs <= rs;
 			id_ex_read_out1 <= read_out1;
 			id_ex_read_out2 <= read_out2;
 			id_ex_sign_extended_imm <= sign_extended_imm;
