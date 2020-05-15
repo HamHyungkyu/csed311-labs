@@ -99,7 +99,18 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 		.mem_write(mem_write), 
 		.mem_read(mem_read), 
 		.reg_write(reg_write), 
-		.mem_to_reg(mem_to_reg));
+		.mem_to_reg(mem_to_reg)
+	);
+	forwarding_unit FORWARDING(
+		.ID_EX_Rs(),
+		.ID_EX_Rt(),
+		.EX_MEM_Reg_Rd(),
+		.MEM_WB_Reg_R(),
+		.RegWrite_MEM(),
+		.RegWrite_WB(),
+		.ForwardA(),
+		.ForwardB()
+	);
 
 	initial begin
 		init();
