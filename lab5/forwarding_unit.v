@@ -1,6 +1,6 @@
 `include "opcodes.v"
 
-module forwarding_unit{ID_EX_Rs, ID_EX_Rt, EX_MEM_Reg_Rd, MEM_WB_Reg_Rd, RegWrite_MEM, RegWrite_WB, ForwardA, ForwardB};
+module forwarding_unit(ID_EX_Rs, ID_EX_Rt, EX_MEM_Reg_Rd, MEM_WB_Reg_Rd, RegWrite_MEM, RegWrite_WB, ForwardA, ForwardB);
 	input [1:0] ID_EX_Rs;
 	input [1:0] ID_EX_Rt;
 	input [1:0] EX_MEM_Reg_Rd;
