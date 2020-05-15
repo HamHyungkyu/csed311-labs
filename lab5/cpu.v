@@ -44,7 +44,9 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	wire reg_write;
 
 	//Control 
-	wire alu_src, alu_op, reg_dest, mem_write, mem_read, reg_write, mem_to_reg;
+	wire alu_src, mem_write, mem_read, reg_write, mem_to_reg;
+	wire [1:0] reg_dest;
+	wire [2:0] alu_op;
 
 	//Pipeline latches
 	//from control
@@ -55,7 +57,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	reg id_ex_reg_write, id_ex_mem_to_reg, ex_mem_reg_write, ex_mem_mem_to_reg, mem_wb_reg_write, mem_wb_mem_to_reg;
 	//from instruction
 	reg [`WORD_SIZE-1:0] id_ex_sign_extended_imm;
-	reg [1:0] id_ex_rd;
+	reg [1:0] id_ex_rd, id_ex_rt;
 	reg [1:0] ex_mem_dest, mem_wb_dest;
 	//from ALU
 	reg [`WORD_SIZE-1:0] ex_mem_alu_result, mem_wb_alu_result;
@@ -70,11 +72,13 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	assign rt = if_id_instruction[9:8];
 	assign write_reg = mem_wb_dest;
 	assign wb = mem_wb_mem_to_reg ? mem_wb_read_data : mem_wb_alu_result;
+	assign rd = mem_wb_dest;
 	//ALU 
 	// 아직 forwarding 고려 안한 상태
 	assign sign_extended_imm = (if_id_instruction[7] == 1)? {8'hff, if_id_instruction[7:0]} : {8'h00, if_id_instruction[7:0]};
 	assign A = id_ex_read_out1;
 	assign B = id_ex_alu_src ? id-id_ex_sign_extended_imm : id_ex_read_out2;
+	assign ALU_FUNC = alu_op; 
 	//Data memory
 	assign address2 = ex_mem_alu_result;
 	assign readM2 = ex_mem_mem_read;
@@ -135,13 +139,14 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 			id_ex_mem_write <= mem_write;
 			id_ex_reg_write <= reg_write;
 			id_ex_rd <= if_id_instruction[7:6];
+			id_ex_rt <= rt;
 			id_ex_read_out1 <= read_out1;
 			id_ex_read_out2 <= read_out2;
 			id_ex_sign_extended_imm <= sign_extended_imm;
 
 			ex_mem_alu_result <= C;
 			ex_mem_read_out2 <= id_ex_read_out2;
-			ex_mem_dest <= id_ex_reg_dest ? //Todo  : id_ex_rd;
+			ex_mem_dest <= id_ex_reg_dest ? id_ex_rt  : id_ex_rd;
 			ex_mem_mem_read <= id_ex_mem_read;
 			ex_mem_mem_write <= id_ex_mem_write;
 			ex_mem_mem_to_reg <= id_ex_mem_to_reg;
