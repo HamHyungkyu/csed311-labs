@@ -1,0 +1,6 @@
+*.bak
+**/work/*
+**/vsim.wlf
+**/*.vstf
+**/*.mpf
+**/*.cr.mti
