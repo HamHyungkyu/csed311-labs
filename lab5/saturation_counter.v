@@ -1,19 +1,32 @@
+`include "opcodes.v"
+
 `define ST 2'b11 //Strongly taken
 `define WT 2'b10 //Weakly taken
 `define WNT 2'b01 //Weakly Not Taken
 `define SNT 2'b00 //Strongly Not Taken
+`define Nbit 8
+`define BTB_SIZE 256
 
-module saturation_counter(clk, reset_n, branch_or_jump, bcond, prediction);
+module saturation_preidiction(clk, reset_n, pc, branch_or_jump, bcond, prediction);
 	input clk;
 	input reset_n;
+	input [`WORD_SIZE-1:0] pc; 
 	input branch_or_jump;
 	input bcond;
-	output reg [1:0] prediction;
+	output reg [`WORD_SIZE-1:0] prediction;
 
+	//Counter
 	reg [1:0] state;
 
-	//Taken 1, Not Taken 0
-	assign prediction = state / 2; 
+	//Table
+	integer i;
+	reg [`WORD_SIZE-1-`Nbit:0] TagTable [`BTB_SIZE-1:0];
+	reg BHT;
+	reg [`WORD_SIZE-1:0] BTB [`BTB_SIZE-1:0];
+
+	//Taken 1, Not Taken 0 // change to real predict pc
+	assign predict_take = 1;
+	assign predict_pc = pc + 1; 
 
 	always @(posedge clk) begin
 		if(!reset_n) begin
@@ -32,4 +45,19 @@ module saturation_counter(clk, reset_n, branch_or_jump, bcond, prediction);
 			end
 		end
 	end
+
+	always @(posedge clk) begin
+		if(!reset_n) begin
+			for(i = 0; i < `BTB_SIZE; i=i+1) begin
+				BTB[i] <= 0;
+				TagTable[i] <= 0;
+			end
+			BHT <= 1;
+		end
+		else begin
+			BHT <= prediction;
+		end
+	end
+
+
 endmodule
