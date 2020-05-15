@@ -95,13 +95,12 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	: (id_ex_alu_src == 2'b11) ? 8
 	: ((forwardB == 2'b00) ? id_ex_read_out2 : 
 	((forwardB == 2'b01) ? mem_wb_alu_result : ex_mem_alu_result));
-	assign ALU_FUNC = alu_op; 
 	//Data memory
 	assign address2 = ex_mem_alu_result;
 	assign readM2 = ex_mem_mem_read;
 	assign writeM2 = ex_mem_mem_write;
 	
-	alu ALU(.A(A), .B(B), .funcCode(ALU_FUNC), .C(C));
+	alu ALU(.A(A), .B(B), .funcCode(id_ex_alu_op), .C(C));
 	register_file REG( 
 		.read1(rs),
 		.read2(rt), 
@@ -140,7 +139,6 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	end
 
 	always @(*) begin
-		next_pc = pc + 1;
 	end
 
 	always @(posedge Clk) begin
@@ -149,6 +147,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 		end
 		else begin
 			if(!is_cur_inst_halted) begin
+				next_pc <= next_pc + 1;
 				pc <= next_pc;
 				num_inst <= num_inst + 1;
 				instruction_fetech <= 1;
@@ -195,9 +194,12 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 
 	task init; 
 	begin
-		pc <= 0;
-		next_pc <= 1;
+		pc <= 16'h23;
+		next_pc <= 16'h23;
 		num_inst <= 0;
+		instruction_fetech <= 0;
+		id_ex_mem_write <= 0;
+		ex_mem_mem_write <= 0;
 	end
 	endtask
 

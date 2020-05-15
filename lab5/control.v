@@ -58,7 +58,7 @@ module control(instruction, alu_src, alu_op, reg_dest, mem_write, mem_read, reg_
             && (alu_instruction != `INST_FUNC_HLT 
             && alu_instruction != `INST_FUNC_WWD 
             && alu_instruction !=`INST_FUNC_JPR)) 
-            || (itype && (opcode > 3 && opcode < 8 )) || (opcode == 4'h9) ;
+            || (itype && (opcode > 3 && opcode < 8 )) || (opcode == `JAL_OP) ;
         
         if(opcode == 4'ha || (rtype && alu_instruction == `INST_FUNC_JRL))
             reg_dest = 2'b10;
