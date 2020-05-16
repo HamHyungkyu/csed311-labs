@@ -37,8 +37,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	wire [2:0] ALU_FUNC;
 	
 	//Register file
-	wire[1:0] rs, rt, rd;
-	wire [1:0] write_reg;
+	wire[1:0] rs, rt;
 	wire [`WORD_SIZE-1:0] wb;
 	wire [`WORD_SIZE-1:0] read_out1, read_out2;
 
@@ -83,9 +82,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	//regfile
 	assign rs = if_id_instruction[11:10];
 	assign rt = if_id_instruction[9:8];
-	assign write_reg = mem_wb_dest;
 	assign wb = mem_wb_mem_to_reg ? mem_wb_read_data : mem_wb_alu_result;
-	assign rd = mem_wb_dest;
 	//ALU 
 	//Forwarding Considered
 	assign sign_extended_imm = (if_id_instruction[7] == 1)? {8'hff, if_id_instruction[7:0]} : {8'h00, if_id_instruction[7:0]};
@@ -106,9 +103,9 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	register_file REG( 
 		.read1(rs),
 		.read2(rt), 
-		.write_reg(write_reg), 
+		.write_reg(mem_wb_dest), 
 		.write_data(wb), 
-		.reg_write(reg_write), 
+		.reg_write(mem_wb_reg_write), 
 		.read_out1(read_out1), 
 		.read_out2(read_out2), 
 		.clk(Clk)
@@ -177,9 +174,9 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 			
 			ex_mem_alu_result <= C;
 			ex_mem_read_out2 <= id_ex_read_out2;
-			if(reg_dest == 2'b00) 
+			if(id_ex_reg_dest == 2'b00) 
 				ex_mem_dest <= id_ex_rd;
-			else if (reg_dest == 2'b01)
+			else if (id_ex_reg_dest == 2'b01)
 				ex_mem_dest <= id_ex_rt;
 			else 
 				ex_mem_dest <= 2'b10;
@@ -204,6 +201,9 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 		instruction_fetech <= 0;
 		id_ex_mem_write <= 0;
 		ex_mem_mem_write <= 0;
+		id_ex_reg_write <= 0;
+		ex_mem_reg_write <= 0;
+		mem_wb_reg_write <= 0;
 	end
 	endtask
 
