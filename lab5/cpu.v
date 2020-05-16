@@ -74,7 +74,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	assign address1 = pc;
 	assign readM1 = instruction_fetech;
 	assign data1 = `WORD_SIZE'bz;
-	assign data2 = mem_write ? ex_mem_read_out2 : `WORD_SIZE'bz; 
+	assign data2 = ex_mem_mem_write ? ex_mem_read_out2 : `WORD_SIZE'bz; 
 	assign output_port = id_ex_is_wwd ? A : 0; 
 	assign is_halted = id_ex_is_halted;
 	assign num_inst = id_ex_num_inst;
