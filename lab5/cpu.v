@@ -24,7 +24,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	wire [`WORD_SIZE-1:0] data2;
 
 	output [`WORD_SIZE-1:0] num_inst;
-	reg [`WORD_SIZE-1:0] num_inst;
+	wire [`WORD_SIZE-1:0] num_inst;
 	output [`WORD_SIZE-1:0] output_port;
 	wire [`WORD_SIZE-1:0] output_port;
 	output is_halted;
@@ -53,6 +53,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 
 	reg instruction_fetech;
 	//Pipeline latches
+	reg [`WORD_SIZE-1:0] pc_num_inst, if_id_num_inst, id_ex_num_inst;
 	//from control
 	reg [`WORD_SIZE-1:0] if_id_instruction;
 	reg [1:0] id_ex_alu_src, id_ex_reg_dest;
@@ -78,6 +79,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	assign data2 = mem_write ? ex_mem_read_out2 : `WORD_SIZE'bz; 
 	assign output_port = id_ex_is_wwd ? A : 0; 
 	assign is_halted = id_ex_is_halted;
+	assign num_inst = id_ex_num_inst;
 	//regfile
 	assign rs = if_id_instruction[11:10];
 	assign rt = if_id_instruction[9:8];
@@ -149,12 +151,13 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 			if(!is_cur_inst_halted) begin
 				next_pc <= next_pc + 1;
 				pc <= next_pc;
-				num_inst <= num_inst + 1;
+				pc_num_inst <= pc_num_inst + 1;
 				instruction_fetech <= 1;
 			end
 
 			if_id_instruction <= data1;
-			
+			if_id_num_inst <= pc_num_inst;
+
 			id_ex_alu_op <= alu_op;
 			id_ex_alu_src <= alu_src;
 			id_ex_reg_dest <= reg_dest;
@@ -170,7 +173,8 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 			id_ex_sign_extended_imm <= sign_extended_imm;
 			id_ex_is_halted <= is_cur_inst_halted;
 			id_ex_is_wwd <= is_wwd;
-
+			id_ex_num_inst <= if_id_num_inst;
+			
 			ex_mem_alu_result <= C;
 			ex_mem_read_out2 <= id_ex_read_out2;
 			if(reg_dest == 2'b00) 
@@ -196,7 +200,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	begin
 		pc <= 16'h23;
 		next_pc <= 16'h23;
-		num_inst <= 0;
+		pc_num_inst <= 1;
 		instruction_fetech <= 0;
 		id_ex_mem_write <= 0;
 		ex_mem_mem_write <= 0;
