@@ -51,6 +51,11 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	wire [1:0] forwardA;
 	wire [1:0] forwardB;
 
+	//BTB
+	wire [`WORD_SIZE-1:0] pred_pc;
+	wire pred_taken;
+	reg [`WORD_SIZE-1:0] btb_target;
+
 	reg instruction_fetech;
 	//Pipeline latches
 	reg [`WORD_SIZE-1:0] pc_num_inst, if_id_num_inst, id_ex_num_inst, id_ex_jump_target_addr;
@@ -144,6 +149,18 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 		.ForwardA(forwardA),
 		.ForwardB(forwardB)
 	);
+	btb BTB(
+		.clk(Clk),
+		.reset_n(Reset_N),
+		.if_pc(pc),
+		.if_btb_pc(pred_pc),
+		.if_btb_taken(pred_taken),
+		.id_pc(id_ex_pc),
+		.branch(id_ex_branch),
+		.jump(id_ex_jtype_jump | id_ex_rtype_jump),
+		.bcond(bcond),
+		.target(btb_target)
+	);
 
 	initial begin
 		init();
@@ -206,10 +223,11 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 				pc <= next_pc;
 				pc_num_inst <= pc_num_inst + 1;
 				instruction_fetech <= 1;
-			end 
+			end
+			btb_target <= next_pc;
 
 			//Progress pipeline
-			if_id_pc <= pc + 1;
+			if_id_pc <= pred_pc;
 			if_id_instruction <= data1;
 			//Flush control outputs
 			if((mem_read | is_stall)) begin
@@ -270,7 +288,6 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 				id_ex_is_wwd <= is_wwd;
 				id_ex_num_inst <= if_id_num_inst;	
 			end
-
 
 			ex_mem_pc <= id_ex_pc;
 			ex_mem_alu_result <= C;

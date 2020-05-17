@@ -47,7 +47,7 @@ module btb(clk, reset_n, if_pc, if_btb_pc, if_btb_taken, id_pc, branch, jump, bc
 				BTB[i] <= 0;
 				TagTable[i] <= 0;
 			end
-			BHT <= `ST;
+			BHT <= `SNT;
 		end
 		else begin
 			if(branch || jump) begin
