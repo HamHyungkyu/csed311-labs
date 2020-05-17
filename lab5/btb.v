@@ -13,12 +13,16 @@ module btb(clk, reset_n, if_pc, if_btb_pc, if_btb_taken, id_pc, branch, jump, bc
 	input reset_n;
 
 	input [`WORD_SIZE-1:0] if_pc;
-	output reg [`WORD_SIZE-1:0] if_btb_pc;
-	output reg if_btb_taken;
+	output [`WORD_SIZE-1:0] if_btb_pc;
+	output if_btb_taken;
+	wire [`WORD_SIZE-1:0] if_btb_pc;
+	wire if_btb_taken;
+
 
 	input [`WORD_SIZE-1:0] id_pc;
 	input branch;
 	input jump;
+	input bcond;
 	input [`WORD_SIZE-1:0] target;
 
 	//Table
