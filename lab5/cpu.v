@@ -93,7 +93,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	//ALU 
 	//Forwarding Considered
 	assign sign_extended_imm = (if_id_instruction[7] == 1)? {8'hff, if_id_instruction[7:0]} : {8'h00, if_id_instruction[7:0]};
-	assign A = (forwardA == 2'b00) ? id_ex_read_out1 
+	assign A = (forwardA == 2'b00) ? ((id_ex_alu_src == 2'b11) ? id_ex_sign_extended_imm: id_ex_read_out1)
 		: ((forwardA == 2'b01) ? wb 
 		: ex_mem_wb); 
 	assign B = (id_ex_alu_src == 2'b01) ? id_ex_sign_extended_imm 
@@ -155,23 +155,18 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 			target = id_ex_pc + id_ex_sign_extended_imm;
 			case(id_ex_opcode)
 			`BNE_OP: begin
-				$display("NOT EQUAL %x %x", A, B);
 				if(A != B) bcond = 1;
 				else bcond = 0;
 			end
 			`BEQ_OP: begin
 				if(A == B) bcond = 1;
 				else bcond = 0;
-				$display("EQUAL %x %x bcond %d", A, B, bcond);
-
 			end
 			`BGZ_OP: begin
 				if(A[15] == 0 && A > 0) bcond = 1;
 				else bcond = 0;
-				$display("GZ %x bcond %d", A, bcond);
 			end
 			`BLZ_OP: begin
-				$display("LZ %x", A);
 				if(A[15] == 1) bcond = 1;
 				else bcond = 0;
 			end
@@ -191,19 +186,16 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 				instruction_fetech <= 1;
 			end
 			else if (id_ex_branch && bcond) begin
-				$display("is Stall %d", is_stall);
 				pc <= target;
 				next_pc <= target + 1;
 				instruction_fetech <= 1;
 			end
 			else if (id_ex_rtype_jump) begin
-				$display("rtype jump %x", A);
 				pc <= A;
 				next_pc <= A + 1;
 				instruction_fetech <= 1;
 			end
 			else if(is_cur_inst_halted) begin
-				$display("END??");
 			end
 			else if (mem_read) begin
 				instruction_fetech <= 1;
@@ -229,7 +221,6 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 				if_id_num_inst <= pc_num_inst;
 			end
 			if(is_stall) begin
-				$display("is stall");
 				id_ex_pc <= id_ex_pc;
 				id_ex_branch <= 0;
 				id_ex_rtype_jump <= 0;
