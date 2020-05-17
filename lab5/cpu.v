@@ -1,4 +1,5 @@
 `timescale 1ns/1ns
+`include "opcodes.v"
 `define WORD_SIZE 16    // data and address word size
 
 module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, data2, num_inst, output_port, is_halted);
@@ -30,8 +31,8 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	output is_halted;
 	wire is_halted;
 
-	reg [`WORD_SIZE-1:0] pc, next_pc;
-	reg is_stall;
+	reg [`WORD_SIZE-1:0] pc, next_pc, target;
+	reg is_stall, bcond;
 	//ALU wries
 	wire [`WORD_SIZE-1:0] A, B, C, sign_extended_imm;
 	
@@ -52,12 +53,14 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 
 	reg instruction_fetech;
 	//Pipeline latches
-	reg [`WORD_SIZE-1:0] pc_num_inst, if_id_num_inst, id_ex_num_inst;
+	reg [`WORD_SIZE-1:0] pc_num_inst, if_id_num_inst, id_ex_num_inst, id_ex_jump_target_addr;
+	reg [`WORD_SIZE-1:0] if_id_pc, id_ex_pc;
+	reg [3:0] id_ex_opcode;
 	//from control
 	reg [`WORD_SIZE-1:0] if_id_instruction;
 	reg [1:0] id_ex_alu_src, id_ex_reg_dest;
 	reg [2:0] id_ex_alu_op;
-	reg id_ex_is_halted, id_ex_is_wwd;
+	reg id_ex_is_halted, id_ex_is_wwd, id_ex_jtype_jump, id_ex_branch, id_ex_rtype_jump;
 	reg id_ex_mem_write, id_ex_mem_read, ex_mem_mem_write, ex_mem_mem_read;
 	reg id_ex_reg_write, id_ex_mem_to_reg, ex_mem_reg_write, ex_mem_mem_to_reg, mem_wb_reg_write, mem_wb_mem_to_reg;
 	//from instruction
@@ -142,7 +145,29 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	end
 
 	always @(*) begin
-		is_stall = mem_read || jtype_jump || rtype_jump || branch;
+		is_stall = id_ex_jtype_jump | id_ex_rtype_jump | (id_ex_branch && bcond);
+		//Calculate bcond
+		if(id_ex_branch) begin
+			target = if_id_pc + id_ex_sign_extended_imm;
+			case(id_ex_opcode)
+			`BNE_OP: begin
+				if(A != B) bcond = 1;
+				else bcond = 0;
+			end
+			`BEQ_OP: begin
+				if(A == B) bcond = 1;
+				else bcond = 0;
+			end
+			`BGZ_OP: begin
+				if(A[15] == 0 && A > 0) bcond = 1;
+				else bcond = 0;
+			end
+			`BLZ_OP: begin
+				if(A[15] == 1) bcond = 1;
+				else bcond = 0;
+			end
+			endcase
+		end
 	end
 
 	always @(posedge Clk) begin
@@ -150,16 +175,27 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 			init();
 		end
 		else begin
-			if(is_cur_inst_halted) begin
-				$display("end");
+			if (id_ex_jtype_jump) begin
+				pc <= id_ex_jump_target_addr;
+				next_pc <= id_ex_jump_target_addr + 1;
+				instruction_fetech <= 1;
+			end
+			else if (id_ex_branch && bcond) begin
+				pc <= target;
+				next_pc <= target + 1;
+				instruction_fetech <= 1;
+			end
+			else if (id_ex_rtype_jump) begin
+				pc <= A;
+				next_pc <= A + 1;
+				instruction_fetech <= 1;
+			end
+			else if(is_cur_inst_halted) begin
+				instruction_fetech <= 0;
 			end
 			else if (mem_read) begin
 				instruction_fetech <= 1;
-			end
-			else if (jtype_jump) begin
-				pc <= {pc[15:12], if_id_instruction[11:0]};
-				next_pc <= {pc[15:12], if_id_instruction[11:0]} + 1;
-				instruction_fetech <= 1;
+				pc_num_inst <= pc_num_inst;
 			end
 			else begin
 				next_pc <= next_pc + 1;
@@ -169,33 +205,67 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 			end 
 
 			//Progress pipeline
+			if_id_pc <= pc;
 			if_id_instruction <= data1;
 			//Flush control outputs
-			if(!is_stall) begin
+			if((mem_read | is_stall)) begin
+				flush <= 1;
+				if_id_num_inst <= if_id_num_inst;
+			end
+			else begin
 				flush <= 0;
 				if_id_num_inst <= pc_num_inst;
 			end
+			if(is_stall) begin
+				id_ex_pc <= id_ex_pc;
+				id_ex_branch <= 0;
+				id_ex_rtype_jump <= 0;
+				id_ex_jtype_jump <= 0;
+				id_ex_alu_op <= 0;
+				id_ex_alu_src <= 0;
+				id_ex_reg_dest <= 0;
+				id_ex_mem_read <= 0;
+				id_ex_mem_to_reg <= 0;
+				id_ex_mem_write <= 0;
+				id_ex_reg_write <= 0;
+				id_ex_rd <= 0;
+				id_ex_rt <= 0;
+				id_ex_rs <= 0;
+				id_ex_read_out1 <= 0;
+				id_ex_read_out2 <= 0;
+				id_ex_sign_extended_imm <= 0;
+				id_ex_is_halted <= 0;
+				id_ex_is_wwd <= 0;
+				pc_num_inst <= if_id_num_inst;
+				if_id_num_inst <= id_ex_num_inst;
+				id_ex_num_inst <= id_ex_num_inst;
+			end
 			else begin
-				flush <= 1;
-				if_id_num_inst <= if_id_instruction;
+				id_ex_pc <= if_id_pc;
+				id_ex_branch <= branch;
+				id_ex_rtype_jump <= rtype_jump;
+				id_ex_jtype_jump <= jtype_jump;
+				id_ex_opcode <= if_id_instruction[15:12];
+				id_ex_jump_target_addr <= {if_id_pc[15:12], if_id_instruction[11:0]};
+				id_ex_alu_op <= alu_op;
+				id_ex_alu_src <= alu_src;
+				id_ex_reg_dest <= reg_dest;
+				id_ex_mem_read <= mem_read;
+				id_ex_mem_to_reg <= mem_to_reg;
+				id_ex_mem_write <= mem_write;
+				id_ex_reg_write <= reg_write;
+				id_ex_rd <= if_id_instruction[7:6];
+				id_ex_rt <= rt;
+				id_ex_rs <= rs;
+				id_ex_read_out1 <= read_out1;
+				id_ex_read_out2 <= read_out2;
+				id_ex_sign_extended_imm <= sign_extended_imm;
+				id_ex_is_halted <= is_cur_inst_halted;
+				id_ex_is_wwd <= is_wwd;
+				id_ex_num_inst <= if_id_num_inst;	
 			end
 
-			id_ex_alu_op <= alu_op;
-			id_ex_alu_src <= alu_src;
-			id_ex_reg_dest <= reg_dest;
-			id_ex_mem_read <= mem_read;
-			id_ex_mem_to_reg <= mem_to_reg;
-			id_ex_mem_write <= mem_write;
-			id_ex_reg_write <= reg_write;
-			id_ex_rd <= if_id_instruction[7:6];
-			id_ex_rt <= rt;
-			id_ex_rs <= rs;
-			id_ex_read_out1 <= read_out1;
-			id_ex_read_out2 <= read_out2;
-			id_ex_sign_extended_imm <= sign_extended_imm;
-			id_ex_is_halted <= is_cur_inst_halted;
-			id_ex_is_wwd <= is_wwd;
-			id_ex_num_inst <= if_id_num_inst;
+
 
 			ex_mem_alu_result <= C;
 			ex_mem_read_out2 <= id_ex_read_out2;
@@ -218,6 +288,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 		end
 	end
 
+	//Initialize task
 	task init; 
 	begin
 		pc <= 0;
