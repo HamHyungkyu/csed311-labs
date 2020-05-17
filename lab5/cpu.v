@@ -41,7 +41,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	wire [`WORD_SIZE-1:0] read_out1, read_out2;
 
 	//Control 
-	wire  mem_write, mem_read, reg_write, mem_to_reg, is_wwd, is_cur_inst_halted;
+	wire  mem_write, mem_read, reg_write, mem_to_reg, is_wwd, is_cur_inst_halted, jtype_jump, rtype_jump, branch;
 	wire [1:0] alu_src, reg_dest;
 	wire [2:0] alu_op;
 
@@ -119,7 +119,10 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 		.reg_write(reg_write), 
 		.mem_to_reg(mem_to_reg),
 		.is_halted(is_cur_inst_halted),
-		.is_wwd(is_wwd)
+		.is_wwd(is_wwd),
+		.jtype_jump(jtype_jump),
+		.rtype_jump(rtype_jump),
+		.branch(branch)
 	);
 	forwarding_unit FORWARDING(
 		.ID_EX_Rs(id_ex_rs),
@@ -137,7 +140,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	end
 
 	always @(*) begin
-		is_stall = id_ex_mem_read;
+		is_stall = mem_read || jtype_jump || rtype_jump;
 	end
 
 	always @(posedge Clk) begin
@@ -145,58 +148,54 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 			init();
 		end
 		else begin
-			if(!is_cur_inst_halted && !mem_read) begin
+			if(is_cur_inst_halted) begin
+				$display("end");
+			end
+			else if (mem_read) begin
+				instruction_fetech <= 1;
+			end
+			else if (jtype_jump) begin
+				$display("JUMP");
+				pc <= {pc[15:12], if_id_instruction[11:0]};
+				next_pc <= {pc[15:12], if_id_instruction[11:0]} + 1;
+				instruction_fetech <= 1;
+			end
+			else begin
 				next_pc <= next_pc + 1;
 				pc <= next_pc;
 				pc_num_inst <= pc_num_inst + 1;
 				instruction_fetech <= 1;
 			end 
-			else if (mem_read) begin
-				instruction_fetech <= 1;
-			end
+		
 			
 			//Progress pipeline
-			if_id_instruction <= data1;
-			if_id_num_inst <= pc_num_inst;
-
 			if(!is_stall) begin
-				id_ex_alu_op <= alu_op;
-				id_ex_alu_src <= alu_src;
-				id_ex_reg_dest <= reg_dest;
-				id_ex_mem_read <= mem_read;
-				id_ex_mem_to_reg <= mem_to_reg;
-				id_ex_mem_write <= mem_write;
-				id_ex_reg_write <= reg_write;
-				id_ex_rd <= if_id_instruction[7:6];
-				id_ex_rt <= rt;
-				id_ex_rs <= rs;
-				id_ex_read_out1 <= read_out1;
-				id_ex_read_out2 <= read_out2;
-				id_ex_sign_extended_imm <= sign_extended_imm;
-				id_ex_is_halted <= is_cur_inst_halted;
-				id_ex_is_wwd <= is_wwd;
-				id_ex_num_inst <= if_id_num_inst;
+				if_id_instruction <= data1;
+				if_id_num_inst <= pc_num_inst;
 			end
 			else begin
-				id_ex_alu_op <= 0;
-				id_ex_alu_src <= 0;
-				id_ex_reg_dest <= 0;
-				id_ex_mem_read <= 0;
-				id_ex_mem_to_reg <= 0;
-				id_ex_mem_write <= 0;
-				id_ex_reg_write <= 0;
-				id_ex_rd <= 0;
-				id_ex_rt <= 0;
-				id_ex_rs <= 0;
-				id_ex_read_out1 <= 0;
-				id_ex_read_out2 <= 0;
-				id_ex_sign_extended_imm <= 0;
-				id_ex_is_halted <= 0;
-				id_ex_is_wwd <= 0;
-				id_ex_num_inst <= id_ex_num_inst;
+				$display("instruction %x memread %d jtype j %d, rtype j %d, branch %d",if_id_instruction ,mem_read, jtype_jump, rtype_jump, branch);
+				if_id_instruction <= 0;
+				if_id_num_inst <= if_id_instruction;
 			end
 
-			
+			id_ex_alu_op <= alu_op;
+			id_ex_alu_src <= alu_src;
+			id_ex_reg_dest <= reg_dest;
+			id_ex_mem_read <= mem_read;
+			id_ex_mem_to_reg <= mem_to_reg;
+			id_ex_mem_write <= mem_write;
+			id_ex_reg_write <= reg_write;
+			id_ex_rd <= if_id_instruction[7:6];
+			id_ex_rt <= rt;
+			id_ex_rs <= rs;
+			id_ex_read_out1 <= read_out1;
+			id_ex_read_out2 <= read_out2;
+			id_ex_sign_extended_imm <= sign_extended_imm;
+			id_ex_is_halted <= is_cur_inst_halted;
+			id_ex_is_wwd <= is_wwd;
+			id_ex_num_inst <= if_id_num_inst;
+
 			ex_mem_alu_result <= C;
 			ex_mem_read_out2 <= id_ex_read_out2;
 			if(id_ex_reg_dest == 2'b00) 
@@ -220,9 +219,9 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 
 	task init; 
 	begin
-		pc <= 16'h23;
-		next_pc <= 16'h23;
-		pc_num_inst <= 1;
+		pc <= 0;
+		next_pc <= 0;
+		pc_num_inst <= 0;
 		instruction_fetech <= 0;
 		id_ex_mem_write <= 0;
 		ex_mem_mem_write <= 0;
