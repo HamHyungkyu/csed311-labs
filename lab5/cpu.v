@@ -38,12 +38,12 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	
 	//Register file
 	wire[1:0] rs, rt;
-	wire [`WORD_SIZE-1:0] wb;
+	wire [`WORD_SIZE-1:0] ex_mem_wb, wb;
 	wire [`WORD_SIZE-1:0] read_out1, read_out2;
 
 	//Control 
 	reg flush;
-	wire  mem_write, mem_read, reg_write, mem_to_reg, is_wwd, is_cur_inst_halted, jtype_jump, rtype_jump, branch;
+	wire  mem_write, mem_read, reg_write, mem_to_reg, pc_to_reg, is_wwd, is_cur_inst_halted, jtype_jump, rtype_jump, branch;
 	wire [1:0] alu_src, reg_dest;
 	wire [2:0] alu_op;
 	
@@ -54,12 +54,13 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	reg instruction_fetech;
 	//Pipeline latches
 	reg [`WORD_SIZE-1:0] pc_num_inst, if_id_num_inst, id_ex_num_inst, id_ex_jump_target_addr;
-	reg [`WORD_SIZE-1:0] if_id_pc, id_ex_pc;
+	reg [`WORD_SIZE-1:0] if_id_pc, id_ex_pc, ex_mem_pc, mem_wb_pc;
 	reg [3:0] id_ex_opcode;
 	//from control
 	reg [`WORD_SIZE-1:0] if_id_instruction;
 	reg [1:0] id_ex_alu_src, id_ex_reg_dest;
 	reg [2:0] id_ex_alu_op;
+	reg id_ex_pc_to_reg, ex_mem_pc_to_reg, mem_wb_pc_to_reg;
 	reg id_ex_is_halted, id_ex_is_wwd, id_ex_jtype_jump, id_ex_branch, id_ex_rtype_jump;
 	reg id_ex_mem_write, id_ex_mem_read, ex_mem_mem_write, ex_mem_mem_read;
 	reg id_ex_reg_write, id_ex_mem_to_reg, ex_mem_reg_write, ex_mem_mem_to_reg, mem_wb_reg_write, mem_wb_mem_to_reg;
@@ -85,18 +86,21 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	//regfile
 	assign rs = if_id_instruction[11:10];
 	assign rt = if_id_instruction[9:8];
-	assign wb = mem_wb_mem_to_reg ? mem_wb_read_data : mem_wb_alu_result;
+	assign ex_mem_wb = ex_mem_pc_to_reg ? ex_mem_pc : ex_mem_alu_result;
+	assign wb = mem_wb_mem_to_reg ? mem_wb_read_data : 
+				mem_wb_pc_to_reg ? mem_wb_pc : 
+				mem_wb_alu_result;
 	//ALU 
 	//Forwarding Considered
 	assign sign_extended_imm = (if_id_instruction[7] == 1)? {8'hff, if_id_instruction[7:0]} : {8'h00, if_id_instruction[7:0]};
 	assign A = (forwardA == 2'b00) ? id_ex_read_out1 
 		: ((forwardA == 2'b01) ? wb 
-		: ex_mem_alu_result); 
+		: ex_mem_wb); 
 	assign B = (id_ex_alu_src == 2'b01) ? id_ex_sign_extended_imm 
 	: (id_ex_alu_src == 2'b10) ? 1
 	: (id_ex_alu_src == 2'b11) ? 8
 	: ((forwardB == 2'b00) ? id_ex_read_out2 : 
-	((forwardB == 2'b01) ? wb : ex_mem_alu_result));
+	((forwardB == 2'b01) ? wb : ex_mem_wb));
 	//Data memory
 	assign address2 = ex_mem_alu_result;
 	assign readM2 = ex_mem_mem_read;
@@ -123,6 +127,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 		.mem_read(mem_read), 
 		.reg_write(reg_write), 
 		.mem_to_reg(mem_to_reg),
+		.pc_to_reg(pc_to_reg),
 		.is_halted(is_cur_inst_halted),
 		.is_wwd(is_wwd),
 		.jtype_jump(jtype_jump),
@@ -147,7 +152,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	always @(*) begin
 		//Calculate bcond
 		if(id_ex_branch) begin
-			target = if_id_pc + id_ex_sign_extended_imm;
+			target = id_ex_pc + id_ex_sign_extended_imm;
 			case(id_ex_opcode)
 			`BNE_OP: begin
 				$display("NOT EQUAL %x %x", A, B);
@@ -192,6 +197,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 				instruction_fetech <= 1;
 			end
 			else if (id_ex_rtype_jump) begin
+				$display("rtype jump %x", A);
 				pc <= A;
 				next_pc <= A + 1;
 				instruction_fetech <= 1;
@@ -211,7 +217,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 			end 
 
 			//Progress pipeline
-			if_id_pc <= pc;
+			if_id_pc <= pc + 1;
 			if_id_instruction <= data1;
 			//Flush control outputs
 			if((mem_read | is_stall)) begin
@@ -233,6 +239,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 				id_ex_reg_dest <= 0;
 				id_ex_mem_read <= 0;
 				id_ex_mem_to_reg <= 0;
+				id_ex_pc_to_reg <= 0;
 				id_ex_mem_write <= 0;
 				id_ex_reg_write <= 0;
 				id_ex_rd <= 0;
@@ -259,6 +266,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 				id_ex_reg_dest <= reg_dest;
 				id_ex_mem_read <= mem_read;
 				id_ex_mem_to_reg <= mem_to_reg;
+				id_ex_pc_to_reg <= pc_to_reg;
 				id_ex_mem_write <= mem_write;
 				id_ex_reg_write <= reg_write;
 				id_ex_rd <= if_id_instruction[7:6];
@@ -273,7 +281,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 			end
 
 
-
+			ex_mem_pc <= id_ex_pc;
 			ex_mem_alu_result <= C;
 			ex_mem_read_out2 <= id_ex_read_out2;
 			if(id_ex_reg_dest == 2'b00) 
@@ -285,12 +293,15 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 			ex_mem_mem_read <= id_ex_mem_read;
 			ex_mem_mem_write <= id_ex_mem_write;
 			ex_mem_mem_to_reg <= id_ex_mem_to_reg;
+			ex_mem_pc_to_reg <= id_ex_pc_to_reg;
 			ex_mem_reg_write <= id_ex_reg_write;
 
+			mem_wb_pc <= ex_mem_pc;
 			mem_wb_dest <= ex_mem_dest;
 			mem_wb_alu_result <= ex_mem_alu_result;
 			mem_wb_read_data <= data2;
 			mem_wb_mem_to_reg <= ex_mem_mem_to_reg;
+			mem_wb_pc_to_reg <= ex_mem_pc_to_reg;
 			mem_wb_reg_write <= ex_mem_reg_write;
 		end
 	end

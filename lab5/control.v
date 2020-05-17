@@ -1,7 +1,7 @@
 `include "opcodes.v"
 `define WORD_SIZE 16    // data and address word size
 
-module control(instruction, flush, alu_src, alu_op, reg_dest, mem_write, mem_read, reg_write, mem_to_reg, is_halted, is_wwd, jtype_jump, rtype_jump, branch);
+module control(instruction, flush, alu_src, alu_op, reg_dest, mem_write, mem_read, reg_write, mem_to_reg, pc_to_reg, is_halted, is_wwd, jtype_jump, rtype_jump, branch);
     input [`WORD_SIZE-1:0] instruction;
     input flush;
     output reg [1:0] alu_src;
@@ -11,6 +11,7 @@ module control(instruction, flush, alu_src, alu_op, reg_dest, mem_write, mem_rea
     output reg mem_read;
     output reg reg_write;
     output reg mem_to_reg;
+    output reg pc_to_reg;
     output reg is_halted;
     output reg is_wwd;
     output reg jtype_jump;
@@ -36,6 +37,7 @@ module control(instruction, flush, alu_src, alu_op, reg_dest, mem_write, mem_rea
         mem_read <= 0;
         reg_write <= 0;
         mem_to_reg <= 0;
+        pc_to_reg <= 0;
         is_halted <= 0;
         is_wwd <= 0;
         jtype_jump <= 0;
@@ -53,7 +55,8 @@ module control(instruction, flush, alu_src, alu_op, reg_dest, mem_write, mem_rea
             jtype_jump = jtype;
             rtype_jump = rtype && (alu_instruction == `INST_FUNC_JPR || alu_instruction == `INST_FUNC_JRL);
             branch =  ~opcode[3] & ~opcode[2];
-            
+            pc_to_reg = opcode == 4'ha || (rtype && alu_instruction == `INST_FUNC_JRL);
+
             if(rtype && (alu_instruction == `INST_FUNC_SHL || alu_instruction == `INST_FUNC_SHR))
                 alu_src = 2'b10;
             else if(opcode == `LHI_OP)
@@ -69,7 +72,7 @@ module control(instruction, flush, alu_src, alu_op, reg_dest, mem_write, mem_rea
                 && alu_instruction !=`INST_FUNC_JPR)) 
                 || (itype && (opcode > 3 && opcode < 8 )) || (opcode == `JAL_OP) ;
             
-            if(opcode == 4'ha || (rtype && alu_instruction == `INST_FUNC_JRL))
+            if(pc_to_reg) 
                 reg_dest = 2'b10;
             else if (itype)
                 reg_dest = 2'b01;
@@ -104,6 +107,7 @@ module control(instruction, flush, alu_src, alu_op, reg_dest, mem_write, mem_rea
             mem_read = 0;
             reg_write = 0;
             mem_to_reg = 0;
+            pc_to_reg = 0;
             is_halted = 0;
             is_wwd = 0;
             jtype_jump = 0;
