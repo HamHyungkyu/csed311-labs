@@ -1,7 +1,7 @@
 `include "opcodes.v"
 `define WORD_SIZE 16    // data and address word size
 
-module control(instruction, alu_src, alu_op, reg_dest, mem_write, mem_read, reg_write, mem_to_reg, is_halted, is_wwd);
+module control(instruction, alu_src, alu_op, reg_dest, mem_write, mem_read, reg_write, mem_to_reg, is_halted, is_wwd, jtype_jump, rtype_jump, branch);
     input [`WORD_SIZE-1:0] instruction;
     output reg [1:0] alu_src;
     output reg [2:0] alu_op;
@@ -12,17 +12,19 @@ module control(instruction, alu_src, alu_op, reg_dest, mem_write, mem_read, reg_
     output reg mem_to_reg;
     output reg is_halted;
     output reg is_wwd;
-
+    output reg jtype_jump;
+    output reg rtype_jump;
+    output reg branch;
+    
     wire [3:0] opcode;
     wire [5:0] alu_instruction;
-    wire rtype, itype, jtype, load, store, branch;
+    wire rtype, itype, jtype, load, store;
     assign opcode = instruction[15:12];
     assign alu_instruction = instruction[5:0];
     assign rtype = opcode[0] & opcode[1] & opcode[2] & opcode[3]; // 15
     assign itype = ~opcode[3] | (~opcode[0] & ~opcode[1] & ~opcode[2] & opcode[3]); // 0~8
     assign load = ~opcode[3] &  opcode[2] &  opcode[1] &  opcode[0]; // 7
     assign store =  opcode[3] & ~opcode[0] & ~opcode[1] & ~opcode[2]; // 8
-    assign branch = ~opcode[3] & ~opcode[2]; //0 ~3
     assign jtype =  opcode[3] & ~opcode[2] & (opcode[1] ^ opcode[0]); // 9, 10
 
     initial begin
@@ -35,6 +37,8 @@ module control(instruction, alu_src, alu_op, reg_dest, mem_write, mem_read, reg_
         mem_to_reg <= 0;
         is_halted <= 0;
         is_wwd <= 0;
+        jtype_jump <= 0;
+        rtype_jump <= 0;
     end
 
     //Combinational logic for output
@@ -44,7 +48,10 @@ module control(instruction, alu_src, alu_op, reg_dest, mem_write, mem_read, reg_
         mem_write = store;
         is_halted = rtype && alu_instruction == `INST_FUNC_HLT;
         is_wwd = rtype && alu_instruction == `INST_FUNC_WWD;
-
+        jtype_jump = jtype;
+        rtype_jump = rtype && (alu_instruction == `INST_FUNC_JPR || alu_instruction == `INST_FUNC_JRL);
+        branch =  ~opcode[3] & ~opcode[2];
+        
         if(rtype && (alu_instruction == `INST_FUNC_SHL || alu_instruction == `INST_FUNC_SHR))
             alu_src = 2'b10;
         else if(opcode == `LHI_OP)
