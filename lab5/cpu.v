@@ -41,10 +41,11 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	wire [`WORD_SIZE-1:0] read_out1, read_out2;
 
 	//Control 
+	reg flush;
 	wire  mem_write, mem_read, reg_write, mem_to_reg, is_wwd, is_cur_inst_halted, jtype_jump, rtype_jump, branch;
 	wire [1:0] alu_src, reg_dest;
 	wire [2:0] alu_op;
-
+	
 	//Forwarding
 	wire [1:0] forwardA;
 	wire [1:0] forwardB;
@@ -111,6 +112,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	);
 	control CONTROL(
 		.instruction(if_id_instruction), 
+		.flush(flush),
 		.alu_src(alu_src),
 		.alu_op(alu_op), 
 		.reg_dest(reg_dest), 
@@ -140,7 +142,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	end
 
 	always @(*) begin
-		is_stall = mem_read || jtype_jump || rtype_jump;
+		is_stall = mem_read || jtype_jump || rtype_jump || branch;
 	end
 
 	always @(posedge Clk) begin
@@ -155,7 +157,6 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 				instruction_fetech <= 1;
 			end
 			else if (jtype_jump) begin
-				$display("JUMP");
 				pc <= {pc[15:12], if_id_instruction[11:0]};
 				next_pc <= {pc[15:12], if_id_instruction[11:0]} + 1;
 				instruction_fetech <= 1;
@@ -166,16 +167,16 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 				pc_num_inst <= pc_num_inst + 1;
 				instruction_fetech <= 1;
 			end 
-		
-			
+
 			//Progress pipeline
+			if_id_instruction <= data1;
+			//Flush control outputs
 			if(!is_stall) begin
-				if_id_instruction <= data1;
+				flush <= 0;
 				if_id_num_inst <= pc_num_inst;
 			end
 			else begin
-				$display("instruction %x memread %d jtype j %d, rtype j %d, branch %d",if_id_instruction ,mem_read, jtype_jump, rtype_jump, branch);
-				if_id_instruction <= 0;
+				flush <= 1;
 				if_id_num_inst <= if_id_instruction;
 			end
 
@@ -223,6 +224,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 		next_pc <= 0;
 		pc_num_inst <= 0;
 		instruction_fetech <= 0;
+		flush <= 0;
 		id_ex_mem_write <= 0;
 		ex_mem_mem_write <= 0;
 		id_ex_reg_write <= 0;
