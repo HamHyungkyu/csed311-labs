@@ -58,7 +58,7 @@ module control(instruction, flush, alu_src, alu_op, reg_dest, mem_write, mem_rea
                 alu_src = 2'b10;
             else if(opcode == `LHI_OP)
                 alu_src = 2'b11;
-            else if(itype)
+            else if(itype & ~branch)
                 alu_src = 2'b01;
             else
                 alu_src = 2'b00;

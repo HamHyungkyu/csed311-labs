@@ -32,6 +32,7 @@ module register_file(read1, read2, write_reg, write_data, reg_write, read_out1, 
     always @(posedge clk) begin
 
     	if(reg_write) begin
+            $display("regfile %x %x %x %x", registers[0], registers[1], registers[2], registers[3]);
     		registers[write_reg] <= write_data;
     	end
     end

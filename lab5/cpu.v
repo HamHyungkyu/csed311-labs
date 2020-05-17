@@ -145,29 +145,34 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	end
 
 	always @(*) begin
-		is_stall = id_ex_jtype_jump | id_ex_rtype_jump | (id_ex_branch && bcond);
 		//Calculate bcond
 		if(id_ex_branch) begin
 			target = if_id_pc + id_ex_sign_extended_imm;
 			case(id_ex_opcode)
 			`BNE_OP: begin
+				$display("NOT EQUAL %x %x", A, B);
 				if(A != B) bcond = 1;
 				else bcond = 0;
 			end
 			`BEQ_OP: begin
 				if(A == B) bcond = 1;
 				else bcond = 0;
+				$display("EQUAL %x %x bcond %d", A, B, bcond);
+
 			end
 			`BGZ_OP: begin
 				if(A[15] == 0 && A > 0) bcond = 1;
 				else bcond = 0;
+				$display("GZ %x bcond %d", A, bcond);
 			end
 			`BLZ_OP: begin
+				$display("LZ %x", A);
 				if(A[15] == 1) bcond = 1;
 				else bcond = 0;
 			end
 			endcase
 		end
+		is_stall = id_ex_jtype_jump | id_ex_rtype_jump | (id_ex_branch && bcond);
 	end
 
 	always @(posedge Clk) begin
@@ -181,6 +186,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 				instruction_fetech <= 1;
 			end
 			else if (id_ex_branch && bcond) begin
+				$display("is Stall %d", is_stall);
 				pc <= target;
 				next_pc <= target + 1;
 				instruction_fetech <= 1;
@@ -191,7 +197,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 				instruction_fetech <= 1;
 			end
 			else if(is_cur_inst_halted) begin
-				instruction_fetech <= 0;
+				$display("END??");
 			end
 			else if (mem_read) begin
 				instruction_fetech <= 1;
@@ -217,6 +223,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 				if_id_num_inst <= pc_num_inst;
 			end
 			if(is_stall) begin
+				$display("is stall");
 				id_ex_pc <= id_ex_pc;
 				id_ex_branch <= 0;
 				id_ex_rtype_jump <= 0;
