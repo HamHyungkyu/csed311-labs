@@ -219,7 +219,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 				pc_num_inst <= pc_num_inst;
 			end
 			else begin
-				next_pc <= next_pc + 1;
+				next_pc <= pred_pc + 1;
 				pc <= next_pc;
 				pc_num_inst <= pc_num_inst + 1;
 				instruction_fetech <= 1;
@@ -227,8 +227,9 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 			btb_target <= next_pc;
 
 			//Progress pipeline
-			if_id_pc <= pred_pc;
+			if_id_pc <= pc + 1;
 			if_id_instruction <= data1;
+
 			//Flush control outputs
 			if((mem_read | is_stall)) begin
 				flush <= 1;
