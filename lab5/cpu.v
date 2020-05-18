@@ -201,16 +201,19 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 				pc <= id_ex_jump_target_addr;
 				next_pc <= id_ex_jump_target_addr + 1;
 				instruction_fetech <= 1;
+				btb_target <= next_pc;
 			end
 			else if (id_ex_branch && bcond) begin
 				pc <= target;
 				next_pc <= target + 1;
 				instruction_fetech <= 1;
+				btb_target <= next_pc;
 			end
 			else if (id_ex_rtype_jump) begin
 				pc <= A;
 				next_pc <= A + 1;
 				instruction_fetech <= 1;
+				btb_target <= next_pc;
 			end
 			else if(is_cur_inst_halted) begin
 			end
@@ -219,12 +222,11 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 				pc_num_inst <= pc_num_inst;
 			end
 			else begin
-				next_pc <= pred_pc + 1;
+				next_pc <= pred_taken ? ((pred_pc != target) ? next_pc + 1 : pred_pc + 1) : pred_pc + 1;
 				pc <= next_pc;
 				pc_num_inst <= pc_num_inst + 1;
 				instruction_fetech <= 1;
 			end
-			btb_target <= next_pc;
 
 			//Progress pipeline
 			if_id_pc <= pc + 1;
