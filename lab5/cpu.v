@@ -157,7 +157,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 		.if_btb_taken(pred_taken),
 		.id_pc(id_ex_pc),
 		.branch(id_ex_branch),
-		.jump(id_ex_jtype_jump | id_ex_rtype_jump),
+		.jump(id_ex_jtype_jump || id_ex_rtype_jump),
 		.bcond(bcond),
 		.target(btb_target)
 	);
@@ -189,7 +189,9 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 			end
 			endcase
 		end
-		is_stall = id_ex_jtype_jump | id_ex_rtype_jump | (id_ex_branch && bcond);
+		is_stall = (id_ex_jtype_jump && (pred_pc != id_ex_jump_target_addr)) || 
+		(id_ex_rtype_jump && (pred_pc != A)) || 
+		(id_ex_branch && bcond && (pred_pc != target));
 	end
 
 	always @(posedge Clk) begin
@@ -197,19 +199,19 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 			init();
 		end
 		else begin
-			if (id_ex_jtype_jump) begin
+			if (id_ex_jtype_jump && (pc != id_ex_jump_target_addr)) begin
 				pc <= id_ex_jump_target_addr;
 				next_pc <= id_ex_jump_target_addr + 1;
 				instruction_fetech <= 1;
 				btb_target <= next_pc;
 			end
-			else if (id_ex_branch && bcond) begin
+			else if (id_ex_branch && bcond && (pc != target)) begin
 				pc <= target;
 				next_pc <= target + 1;
 				instruction_fetech <= 1;
 				btb_target <= next_pc;
 			end
-			else if (id_ex_rtype_jump) begin
+			else if (id_ex_rtype_jump && (pc != A)) begin
 				pc <= A;
 				next_pc <= A + 1;
 				instruction_fetech <= 1;
@@ -222,7 +224,23 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 				pc_num_inst <= pc_num_inst;
 			end
 			else begin
-				next_pc <= pred_taken ? ((pred_pc != target) ? next_pc + 1 : pred_pc + 1) : pred_pc + 1;
+				if (pred_taken) begin
+					if(id_ex_jtype_jump && (pred_pc == id_ex_jump_target_addr)) begin
+						next_pc <= pred_pc + 1;
+					end
+					else if(id_ex_rtype_jump && (pred_pc == A)) begin
+						next_pc <= pred_pc + 1;
+					end
+					else if(id_ex_branch && (pred_pc == target)) begin
+						next_pc <= pred_pc + 1;
+					end
+					else begin
+						next_pc <= next_pc + 1;
+					end
+				end
+				else begin
+					next_pc <= pred_pc + 1;
+				end
 				pc <= next_pc;
 				pc_num_inst <= pc_num_inst + 1;
 				instruction_fetech <= 1;
@@ -233,7 +251,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 			if_id_instruction <= data1;
 
 			//Flush control outputs
-			if((mem_read | is_stall)) begin
+			if(mem_read || is_stall) begin
 				flush <= 1;
 				if_id_num_inst <= if_id_num_inst;
 			end
