@@ -80,6 +80,9 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	//from data memory
 	reg [`WORD_SIZE-1:0] mem_wb_read_data;
 
+	//
+	reg [`WORD_SIZE-1:0] if_id_pred_pc, id_ex_pred_pc;
+
 	//Assign wires
 	assign address1 = pc;
 	assign readM1 = instruction_fetech;
@@ -189,9 +192,9 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 			end
 			endcase
 		end
-		is_stall = (id_ex_jtype_jump && (pred_pc != id_ex_jump_target_addr)) || 
-		(id_ex_rtype_jump && (pred_pc != A)) || 
-		(id_ex_branch && bcond && (pred_pc != target));
+		is_stall = (id_ex_jtype_jump && (id_ex_pred_pc != id_ex_jump_target_addr)) || 
+		(id_ex_rtype_jump && (id_ex_pred_pc != A)) || 
+		(id_ex_branch && bcond && (id_ex_pred_pc != target));
 	end
 
 	always @(posedge Clk) begin
@@ -199,21 +202,21 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 			init();
 		end
 		else begin
-			if (id_ex_jtype_jump && (pc != id_ex_jump_target_addr)) begin
+			if (id_ex_jtype_jump && (id_ex_pred_pc != id_ex_jump_target_addr)) begin
 				pc <= id_ex_jump_target_addr;
 				next_pc <= id_ex_jump_target_addr + 1;
 				instruction_fetech <= 1;
 				btb_target <= next_pc;
 			end
-			else if (id_ex_branch && bcond && (pc != target)) begin
-				pc <= target;
-				next_pc <= target + 1;
+			else if (id_ex_rtype_jump && (id_ex_pred_pc != A)) begin
+				pc <= A;
+				next_pc <= A + 1;
 				instruction_fetech <= 1;
 				btb_target <= next_pc;
 			end
-			else if (id_ex_rtype_jump && (pc != A)) begin
-				pc <= A;
-				next_pc <= A + 1;
+			else if (id_ex_branch && bcond && (id_ex_pred_pc != target)) begin
+				pc <= target;
+				next_pc <= target + 1;
 				instruction_fetech <= 1;
 				btb_target <= next_pc;
 			end
@@ -225,13 +228,13 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 			end
 			else begin
 				if (pred_taken) begin
-					if(id_ex_jtype_jump && (pred_pc == id_ex_jump_target_addr)) begin
+					if(id_ex_jtype_jump && (id_ex_pred_pc == id_ex_jump_target_addr)) begin
 						next_pc <= pred_pc + 1;
 					end
-					else if(id_ex_rtype_jump && (pred_pc == A)) begin
+					else if(id_ex_rtype_jump && (id_ex_pred_pc == A)) begin
 						next_pc <= pred_pc + 1;
 					end
-					else if(id_ex_branch && (pred_pc == target)) begin
+					else if(id_ex_branch && (id_ex_pred_pc == target)) begin
 						next_pc <= pred_pc + 1;
 					end
 					else begin
@@ -245,10 +248,11 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 				pc_num_inst <= pc_num_inst + 1;
 				instruction_fetech <= 1;
 			end
-
+			//$display("%d, %d, %d", pc, next_pc, pred_pc);
 			//Progress pipeline
 			if_id_pc <= pc + 1;
 			if_id_instruction <= data1;
+			if_id_pred_pc <= pred_pc;
 
 			//Flush control outputs
 			if(mem_read || is_stall) begin
@@ -286,6 +290,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 			end
 			else begin
 				id_ex_pc <= if_id_pc;
+				id_ex_pred_pc <= if_id_pred_pc;
 				id_ex_branch <= branch;
 				id_ex_rtype_jump <= rtype_jump;
 				id_ex_jtype_jump <= jtype_jump;

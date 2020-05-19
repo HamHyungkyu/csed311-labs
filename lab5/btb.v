@@ -13,11 +13,8 @@ module btb(clk, reset_n, if_pc, if_btb_pc, if_btb_taken, id_pc, branch, jump, bc
 	input reset_n;
 
 	input [`WORD_SIZE-1:0] if_pc;
-	output [`WORD_SIZE-1:0] if_btb_pc;
-	output if_btb_taken;
-	wire [`WORD_SIZE-1:0] if_btb_pc;
-	wire if_btb_taken;
-
+	output reg [`WORD_SIZE-1:0] if_btb_pc;
+	output reg if_btb_taken;
 
 	input [`WORD_SIZE-1:0] id_pc;
 	input branch;
@@ -37,9 +34,10 @@ module btb(clk, reset_n, if_pc, if_btb_pc, if_btb_taken, id_pc, branch, jump, bc
 	wire id_tag = id_pc[`WORD_SIZE-1:`WORD_SIZE-`N_bit];
 	wire id_idx = id_pc[`N_bit:0];
 
-	//Prediction
-	assign if_btb_pc = ((if_tag == TagTable[if_idx]) && (BHT / 2)) ? BTB[if_idx] : (if_pc + 1);
-	assign if_btb_taken = BHT / 2;
+	always @(*) begin
+		if_btb_pc = ((if_tag == TagTable[if_idx]) && (BHT / 2)) ? BTB[if_idx] : (if_pc + 1);
+		if_btb_taken = BHT / 2;
+	end
 
 	always @(posedge clk) begin
 		if(!reset_n) begin
