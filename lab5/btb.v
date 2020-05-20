@@ -34,6 +34,11 @@ module btb(clk, reset_n, if_pc, if_btb_pc, if_btb_taken, id_pc, branch, jump, bc
 	wire id_tag = id_pc[`WORD_SIZE-1:`WORD_SIZE-`N_bit];
 	wire id_idx = id_pc[`N_bit:0];
 
+	initial begin
+		if_btb_pc <= 0;
+		if_btb_taken <= 0;
+	end
+	
 	always @(*) begin
 		if_btb_pc = ((if_tag == TagTable[if_idx]) && (BHT / 2)) ? BTB[if_idx] : (if_pc + 1);
 		if_btb_taken = BHT / 2;
