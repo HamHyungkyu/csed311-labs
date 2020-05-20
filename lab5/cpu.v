@@ -210,7 +210,19 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 			else if (id_ex_branch && bcond && (id_ex_pred_pc == target)) begin
 				next_pc = pred_pc;
 			end
-			next_pc = pc + 1;
+			else begin
+				next_pc = pc + 1;
+			end
+		end
+
+		if (id_ex_jtype_jump) begin
+			btb_target = id_ex_jump_target_addr;
+		end
+		else if (id_ex_rtype_jump) begin
+			btb_target = A;
+		end
+		else if (id_ex_branch && bcond) begin
+			btb_target = target;
 		end
 	end
 
@@ -223,17 +235,14 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 			if (id_ex_jtype_jump && (id_ex_pred_pc != id_ex_jump_target_addr)) begin
 				pc <= id_ex_jump_target_addr;
 				instruction_fetech <= 1;
-				btb_target <= next_pc;
 			end
 			else if (id_ex_rtype_jump && (id_ex_pred_pc != A)) begin
 				pc <= A;
 				instruction_fetech <= 1;
-				btb_target <= next_pc;
 			end
 			else if (id_ex_branch && bcond && (id_ex_pred_pc != target)) begin
 				pc <= target;
 				instruction_fetech <= 1;
-				btb_target <= next_pc;
 			end
 			else if(is_cur_inst_halted) begin
 			end
