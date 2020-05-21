@@ -59,6 +59,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	reg instruction_fetech;
 	//Pipeline latches
 	reg [`WORD_SIZE-1:0] pc_num_inst, if_id_num_inst, id_ex_num_inst, id_ex_jump_target_addr;
+	reg [`WORD_SIZE-1:0] if_id_pc, id_ex_pc;
 	reg [`WORD_SIZE-1:0] if_id_pc_plus_one, id_ex_pc_plus_one, ex_mem_pc_plus_one, mem_wb_pc_plus_one;
 	reg [3:0] id_ex_opcode;
 	//from control
@@ -158,7 +159,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 		.if_pc(pc),
 		.if_btb_pc(pred_pc),
 		.if_btb_taken(pred_taken),
-		.id_pc(id_ex_pc_plus_one - 1),
+		.id_pc(id_ex_pc),
 		.branch(id_ex_branch),
 		.jump(id_ex_jtype_jump || id_ex_rtype_jump),
 		.bcond(bcond),
@@ -253,6 +254,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 			end
 
 			//Progress pipeline
+			if_id_pc <= pc;
 			if_id_pc_plus_one <= pc + 1;
 			if_id_instruction <= data1;
 			if_id_pred_pc <= pred_pc;
@@ -268,6 +270,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 			end
 			//Ignore contorl unit outputs when it is stall condion
 			if(is_stall) begin
+				id_ex_pc <= id_ex_pc;
 				id_ex_pc_plus_one <= id_ex_pc_plus_one;
 				id_ex_pred_pc <= 0;
 				id_ex_branch <= 0;
@@ -294,6 +297,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 				id_ex_num_inst <= id_ex_num_inst;
 			end
 			else begin
+				id_ex_pc <= if_id_pc;
 				id_ex_pc_plus_one <= if_id_pc_plus_one;
 				id_ex_pred_pc <= if_id_pred_pc;
 				id_ex_branch <= branch;
