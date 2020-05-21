@@ -59,7 +59,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	reg instruction_fetech;
 	//Pipeline latches
 	reg [`WORD_SIZE-1:0] pc_num_inst, if_id_num_inst, id_ex_num_inst, id_ex_jump_target_addr;
-	reg [`WORD_SIZE-1:0] if_id_pc, id_ex_pc, ex_mem_pc, mem_wb_pc;
+	reg [`WORD_SIZE-1:0] if_id_pc_plus_one, id_ex_pc_plus_one, ex_mem_pc_plus_one, mem_wb_pc_plus_one;
 	reg [3:0] id_ex_opcode;
 	//from control
 	reg [`WORD_SIZE-1:0] if_id_instruction;
@@ -94,9 +94,9 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	//regfile
 	assign rs = if_id_instruction[11:10];
 	assign rt = if_id_instruction[9:8];
-	assign ex_mem_wb = ex_mem_pc_to_reg ? ex_mem_pc : ex_mem_alu_result;
+	assign ex_mem_wb = ex_mem_pc_to_reg ? ex_mem_pc_plus_one : ex_mem_alu_result;
 	assign wb = mem_wb_mem_to_reg ? mem_wb_read_data : 
-				mem_wb_pc_to_reg ? mem_wb_pc : 
+				mem_wb_pc_to_reg ? mem_wb_pc_plus_one : 
 				mem_wb_alu_result;
 	//ALU 
 	//Forwarding Considered
@@ -158,7 +158,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 		.if_pc(pc),
 		.if_btb_pc(pred_pc),
 		.if_btb_taken(pred_taken),
-		.id_pc(id_ex_pc),
+		.id_pc(id_ex_pc_plus_one - 1),
 		.branch(id_ex_branch),
 		.jump(id_ex_jtype_jump || id_ex_rtype_jump),
 		.bcond(bcond),
@@ -172,7 +172,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	always @(*) begin
 		//Calculate bcond
 		if(id_ex_branch) begin
-			target = id_ex_pc + id_ex_sign_extended_imm;
+			target = id_ex_pc_plus_one + id_ex_sign_extended_imm;
 			case(id_ex_opcode)
 			`BNE_OP: begin
 				if(A != B) bcond = 1;
@@ -193,27 +193,17 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 			endcase
 		end
 
+		//Stall conditons
+		// 1. J type jump target miss match 
+		// 2. R type jump target miss match
+		// 3. Branch miss predict - 1 (Real- taken  & Predict - not taken)
+		// 4. Branch miss predict - 2 (Real- not taken  & Predict -  taken)
 		is_stall = (id_ex_jtype_jump && (id_ex_pred_pc != id_ex_jump_target_addr)) || 
 		(id_ex_rtype_jump && (id_ex_pred_pc != A)) || 
-		(id_ex_branch && bcond && (id_ex_pred_pc != target));
+		(id_ex_branch && bcond && (id_ex_pred_pc != target)) || 
+		(id_ex_branch && ~bcond && (id_ex_pred_pc != id_ex_pc_plus_one));
 
-		if(!pred_taken) begin
-			next_pc = pred_pc;
-		end
-		else begin
-			if (id_ex_jtype_jump && (id_ex_pred_pc == id_ex_jump_target_addr)) begin
-				next_pc = pred_pc;
-			end
-			else if (id_ex_rtype_jump && (id_ex_pred_pc == A)) begin
-				next_pc = pred_pc;
-			end
-			else if (id_ex_branch && bcond && (id_ex_pred_pc == target)) begin
-				next_pc = pred_pc;
-			end
-			else begin
-				next_pc = pc + 1;
-			end
-		end
+		next_pc = pred_pc;
 
 		if (id_ex_jtype_jump) begin
 			btb_target = id_ex_jump_target_addr;
@@ -231,7 +221,8 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 			init();
 		end
 		else begin
-			//$display("%d, %d, %d", pc, next_pc, pred_pc);
+			//Contorl handling
+			//stall condition 1, 2, 3, 4, mem_read or normal progress
 			if (id_ex_jtype_jump && (id_ex_pred_pc != id_ex_jump_target_addr)) begin
 				pc <= id_ex_jump_target_addr;
 				instruction_fetech <= 1;
@@ -244,7 +235,12 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 				pc <= target;
 				instruction_fetech <= 1;
 			end
+			else if (id_ex_branch && ~bcond && id_ex_pred_pc != id_ex_pc_plus_one) begin
+				pc <= id_ex_pc_plus_one;
+				instruction_fetech <= 1;
+			end
 			else if(is_cur_inst_halted) begin
+				instruction_fetech <= 0;
 			end
 			else if (mem_read) begin
 				instruction_fetech <= 1;
@@ -257,7 +253,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 			end
 
 			//Progress pipeline
-			if_id_pc <= pc + 1;
+			if_id_pc_plus_one <= pc + 1;
 			if_id_instruction <= data1;
 			if_id_pred_pc <= pred_pc;
 
@@ -270,8 +266,10 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 				flush <= 0;
 				if_id_num_inst <= pc_num_inst;
 			end
+			//Ignore contorl unit outputs when it is stall condion
 			if(is_stall) begin
-				id_ex_pc <= id_ex_pc;
+				id_ex_pc_plus_one <= id_ex_pc_plus_one;
+				id_ex_pred_pc <= 0;
 				id_ex_branch <= 0;
 				id_ex_rtype_jump <= 0;
 				id_ex_jtype_jump <= 0;
@@ -296,13 +294,13 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 				id_ex_num_inst <= id_ex_num_inst;
 			end
 			else begin
-				id_ex_pc <= if_id_pc;
+				id_ex_pc_plus_one <= if_id_pc_plus_one;
 				id_ex_pred_pc <= if_id_pred_pc;
 				id_ex_branch <= branch;
 				id_ex_rtype_jump <= rtype_jump;
 				id_ex_jtype_jump <= jtype_jump;
 				id_ex_opcode <= if_id_instruction[15:12];
-				id_ex_jump_target_addr <= {if_id_pc[15:12], if_id_instruction[11:0]};
+				id_ex_jump_target_addr <= {if_id_pc_plus_one[15:12], if_id_instruction[11:0]};
 				id_ex_alu_op <= alu_op;
 				id_ex_alu_src <= alu_src;
 				id_ex_reg_dest <= reg_dest;
@@ -322,7 +320,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 				id_ex_num_inst <= if_id_num_inst;	
 			end
 
-			ex_mem_pc <= id_ex_pc;
+			ex_mem_pc_plus_one <= id_ex_pc_plus_one;
 			ex_mem_alu_result <= C;
 			ex_mem_read_out2 <= id_ex_read_out2;
 			if(id_ex_reg_dest == 2'b00) 
@@ -337,7 +335,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 			ex_mem_pc_to_reg <= id_ex_pc_to_reg;
 			ex_mem_reg_write <= id_ex_reg_write;
 
-			mem_wb_pc <= ex_mem_pc;
+			mem_wb_pc_plus_one <= ex_mem_pc_plus_one;
 			mem_wb_dest <= ex_mem_dest;
 			mem_wb_alu_result <= ex_mem_alu_result;
 			mem_wb_read_data <= data2;
