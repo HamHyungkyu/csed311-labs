@@ -112,7 +112,7 @@ is_hit, mem_fetch_output, req_mem_read, req_mem_read_address, req_mem_write, req
                     data_bank[target_bank][address_idx] <= hitted_line;
                 end  
             end
-            else begin
+            if(!is_hit) begin
                 if(read_ack) begin
                     if(waiting) begin
                         valid_bank[target_bank][address_idx] <= 1;

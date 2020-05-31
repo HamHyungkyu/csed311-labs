@@ -77,11 +77,12 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 	
 	wire stall_before_mem;
 	wire stall_if;
+	reg rest;
 
 	reg [1:0] mem_fetch_owner;
 	reg instruction_fetech;
 	//Pipeline latches
-	reg [`WORD_SIZE-1:0] pc_num_inst, if_id_num_inst, id_ex_num_inst, id_ex_jump_target_addr;
+	reg [`WORD_SIZE-1:0] pc_num_inst, if_id_num_inst, id_ex_num_inst, output_num_inst, id_ex_jump_target_addr;
 	reg [`WORD_SIZE-1:0] if_id_pc, id_ex_pc;
 	reg [`WORD_SIZE-1:0] if_id_pc_plus_one, id_ex_pc_plus_one, ex_mem_pc_plus_one, mem_wb_pc_plus_one;
 	reg [3:0] id_ex_opcode;
@@ -115,7 +116,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 	assign data2 = (mem_fetch_owner == 2'b01) ? inst_mem_fetch_output : data_mem_fetch_output; 
 	assign output_port = id_ex_is_wwd ? A : 0; 
 	assign is_halted = id_ex_is_halted;
-	assign num_inst = id_ex_num_inst;
+	assign num_inst = output_num_inst;
 
 	//regfile
 	assign rs = if_id_instruction[11:10];
@@ -290,9 +291,11 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 		end
 		else begin
 			if(stall_if) begin
+				flush <= 1;
 				instruction_fetech <= 1;
 			end
 			else begin
+				flush <= 0;
 				//Contorl handling
 				//stall condition 1, 2, 3, 4, mem_read or normal progress
 				if (id_ex_jtype_jump && (id_ex_pred_pc != id_ex_jump_target_addr)) begin
@@ -407,6 +410,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 					id_ex_num_inst <= if_id_num_inst;	
 				end
 
+				output_num_inst <= id_ex_num_inst;
 				ex_mem_pc_plus_one <= id_ex_pc_plus_one;
 				ex_mem_alu_result <= C;
 				ex_mem_read_out2 <= id_ex_read_out2;
@@ -448,6 +452,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 		ex_mem_reg_write <= 0;
 		mem_wb_reg_write <= 0;
 		mem_fetch_owner <= 0;
+		rest <= 0;
 	end
 	endtask
 
