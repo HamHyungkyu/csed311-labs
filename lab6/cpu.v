@@ -209,7 +209,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 		.req_mem_write(inst_mem_write_req),
 		.req_mem_write_address(inst_write_address));
 	cache DATA_CACHE(
-		.address(address2), 
+		.address(ex_mem_alu_result), 
 		.mem_read(ex_mem_mem_read), 
 		.mem_write(ex_mem_mem_write),
 		.mem_fetch_input(data1),
@@ -275,9 +275,9 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 			btb_target = target;
 		end
 
-		if(~is_inst_hit && mem_fetch_owner == 2'b00)
+		if(stall_if && mem_fetch_owner == 2'b00)
 			mem_fetch_owner = 2'b01;
-		else if(~is_data_hit && mem_fetch_owner == 2'b00)
+		else if(stall_before_mem && mem_fetch_owner == 2'b00)
 			mem_fetch_owner = 2'b10;
 		else if(is_inst_hit && mem_fetch_owner == 2'b01)
 			mem_fetch_owner = 2'b00;
