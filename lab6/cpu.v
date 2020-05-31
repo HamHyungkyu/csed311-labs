@@ -106,13 +106,13 @@ module cpu(Clk, Reset_N, readM1, address1, data1, read_ack, readM2, writeM2, add
 	reg [`WORD_SIZE-1:0] if_id_pred_pc, id_ex_pred_pc;
 
 	//Assign wires
-	assign address1 = mem_fetch_owner == 2'b01? inst_read_address : data_read_address;
-	assign address2 = mem_fetch_owner == 2'b01? inst_write_address: data_write_address;
+	assign address1 = (mem_fetch_owner == 2'b01) ? inst_read_address : data_read_address;
+	assign address2 = (mem_fetch_owner == 2'b01) ? inst_write_address: data_write_address;
 	assign readM1 = inst_mem_read_req | data_mem_read_req;
 	assign readM2 = 0;
 	assign writeM2 = inst_mem_write_req | data_mem_write_req;
 	assign data1 = `WORD_SIZE'bz;
-	assign data2 = mem_fetch_owner == 2'b01? ? inst_mem_fetch_output : data_mem_fetch_output; 
+	assign data2 = (mem_fetch_owner == 2'b01) ? inst_mem_fetch_output : data_mem_fetch_output; 
 	assign output_port = id_ex_is_wwd ? A : 0; 
 	assign is_halted = id_ex_is_halted;
 	assign num_inst = id_ex_num_inst;

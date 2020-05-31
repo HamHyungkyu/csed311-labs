@@ -40,8 +40,8 @@ is_hit, output_data, mem_fetch_output, req_mem_read, req_mem_read_address, req_m
     
     wire tag_comparator_0 = tag_bank[0][address_idx] == address_tag;
     wire tag_comparator_1 = tag_bank[1][address_idx] == address_tag;
-    wire bank_hit_0 = tag_comparator[0] & valid_bank[0][address_idx];
-    wire bank_hit_1 = tag_comparator[1] & valid_bank[1][address_idx];
+    wire bank_hit_0 = tag_comparator_0 & valid_bank[0][address_idx];
+    wire bank_hit_1 = tag_comparator_1 & valid_bank[1][address_idx];
     assign is_hit = bank_hit_0 | bank_hit_1;
 
     initial begin
@@ -68,7 +68,7 @@ is_hit, output_data, mem_fetch_output, req_mem_read, req_mem_read_address, req_m
                     2'b00: hitted_line = {input_data, hitted_line[`WORD_SIZE*3-1:0]};
                     2'b01: hitted_line = {hitted_line[`WORD_SIZE*4-1: `WORD_SIZE*3], input_data, hitted_line[`WORD_SIZE*2-1:0]};
                     2'b10: hitted_line = {hitted_line[`WORD_SIZE*4-1: `WORD_SIZE*2], input_data, hitted_line[`WORD_SIZE*1-1:0]};
-                    2'b11: hitted_line = {hitted_line[`WORD_SIZE*4-1: `WORD_SIZE*1], input_data;
+                    2'b11: hitted_line = {hitted_line[`WORD_SIZE*4-1: `WORD_SIZE*1], input_data};
                 endcase  
             end                               
         end
