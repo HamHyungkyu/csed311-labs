@@ -1,7 +1,7 @@
 `define WORD_SIZE 16    // data and address word size
 
-module cache (address, mem_read, mem_write, mem_fetch_input, input_data, read_ack, write_ack, reset_n, clk, 
-is_hit, output_data, mem_fetch_output, req_mem_read, req_mem_read_address, req_mem_write, req_mem_write_address);
+module cache (address, mem_read, mem_write, mem_fetch_input, data, read_ack, write_ack, reset_n, clk, 
+is_hit, mem_fetch_output, req_mem_read, req_mem_read_address, req_mem_write, req_mem_write_address);
     // Address format in this cache 
     // 15~3 : tag bits
     // 2  : index
@@ -10,12 +10,14 @@ is_hit, output_data, mem_fetch_output, req_mem_read, req_mem_read_address, req_m
     input mem_read;
     input mem_write;
     input [`WORD_SIZE*4-1:0] mem_fetch_input;
-    input [`WORD_SIZE-1:0] input_data;
+    input [`WORD_SIZE-1:0] _data;
     input read_ack, write_ack;
     input clk;
     input reset_n;
     output is_hit;
-    output reg [`WORD_SIZE-1:0] output_data;
+    reg [`WORD_SIZE-1:0] output_data;
+
+    assign data = mem_write ? `WORD_SIZE'bz : output_data;
     output reg [`WORD_SIZE*4-1:0]mem_fetch_output;
     output reg req_mem_read;
     output reg [`WORD_SIZE-1:0] req_mem_read_address;

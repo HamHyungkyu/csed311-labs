@@ -72,7 +72,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, read_ack, readM2, writeM2, add
 	wire data_mem_write_req;
 	wire [`WORD_SIZE-1:0] data_read_address;
 	wire [`WORD_SIZE-1:0] data_write_address;
-	wire [`WORD_SIZE-1:0] data_output;
+	wire [`WORD_SIZE-1:0] data_req = ex_mem_mem_write ? ex_mem_read_out2 : `WORD_SIZE'bz;
 	wire [`WORD_SIZE*4-1:0] data_mem_fetch_output;
 
 	wire stall_before_if = (~is_inst_hit | ~is_data_hit);
@@ -192,13 +192,12 @@ module cpu(Clk, Reset_N, readM1, address1, data1, read_ack, readM2, writeM2, add
 		.mem_read(instruction_fetech), 
 		.mem_write(0),
 		.mem_fetch_input(data1),
-		.input_data(`WORD_SIZE'bz),
+		.data(inst_output),
 		.read_ack(read_ack),
 		.write_ack(write_ack),
 		.reset_n(Reset_N),
 		.clk(Clk),
 		.is_hit(is_inst_hit),
-		.output_data(inst_output),
 		.mem_fetch_output(inst_mem_fetch_output),
 		.req_mem_read(inst_mem_read_req),
 		.req_mem_read_address(inst_read_address),
@@ -209,13 +208,12 @@ module cpu(Clk, Reset_N, readM1, address1, data1, read_ack, readM2, writeM2, add
 		.mem_read(ex_mem_mem_read), 
 		.mem_write(ex_mem_mem_write),
 		.mem_fetch_input(data1),
-		.input_data(ex_mem_read_out2),
+		.data(data_req),
 		.read_ack(read_ack),
 		.write_ack(write_ack),
 		.reset_n(Reset_N),
 		.clk(Clk),
 		.is_hit(is_data_hit),
-		.output_data(data_req_output),
 		.mem_fetch_output(data_mem_fetch_output),
 		.req_mem_read(data_mem_read_req),
 		.req_mem_read_address(data_read_address),
@@ -414,7 +412,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, read_ack, readM2, writeM2, add
 				mem_wb_pc_plus_one <= ex_mem_pc_plus_one;
 				mem_wb_dest <= ex_mem_dest;
 				mem_wb_alu_result <= ex_mem_alu_result;
-				mem_wb_read_data <= data_output;
+				mem_wb_read_data <= data_req;
 				mem_wb_mem_to_reg <= ex_mem_mem_to_reg;
 				mem_wb_pc_to_reg <= ex_mem_pc_to_reg;
 				mem_wb_reg_write <= ex_mem_reg_write;	
