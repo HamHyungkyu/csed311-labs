@@ -82,7 +82,7 @@ is_hit, output_data, mem_fetch_output, req_mem_read, req_mem_read_address, req_m
             end
             else begin // Evict LRU
                 target_bank = resently_used_bank[0][address_idx] ? 1 : 0;
-                if(dirty_bit_bank[target_bank][address_idx])
+                if(dirty_bit_bank[target_bank][address_idx]) //Write back only when it is dirty
                     write_back = 1;
                 req_mem_write_address = {tag_bank[target_bank][address_idx], address_idx, 2'b00};
                 tag_bank[target_bank][address_idx] = address_tag;
