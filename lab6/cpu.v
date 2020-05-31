@@ -2,7 +2,7 @@
 `include "opcodes.v"
 `define WORD_SIZE 16    // data and address word size
 
-module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, data2, num_inst, output_port, is_halted);
+module cpu(Clk, Reset_N, readM1, address1, data1, read_ack, readM2, writeM2, address2, data2, write_ack, num_inst, output_port, is_halted);
 	input Clk;
 	wire Clk;
 	input Reset_N;
@@ -23,6 +23,8 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	wire [`WORD_SIZE*4-1:0] data1;
 	inout [`WORD_SIZE*4-1:0] data2;
 	wire [`WORD_SIZE*4-1:0] data2;
+
+	input read_ack, write_ack;
 
 	output [`WORD_SIZE-1:0] num_inst;
 	wire [`WORD_SIZE-1:0] num_inst;
@@ -56,6 +58,26 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	wire pred_taken;
 	reg [`WORD_SIZE-1:0] btb_target;
 
+	//Cacehe
+	wire is_inst_hit;
+	wire inst_mem_read_req;
+	wire inst_mem_write_req;
+	wire [`WORD_SIZE-1:0] inst_read_address;
+	wire [`WORD_SIZE-1:0] inst_write_address;
+	wire [`WORD_SIZE-1:0] inst_output;
+	wire [`WORD_SIZE*4-1:0] inst_mem_fetch_output;
+
+	wire is_data_hit;
+	wire data_mem_read_req;
+	wire data_mem_write_req;
+	wire [`WORD_SIZE-1:0] data_read_address;
+	wire [`WORD_SIZE-1:0] data_write_address;
+	wire [`WORD_SIZE-1:0] data_output;
+	wire [`WORD_SIZE*4-1:0] data_mem_fetch_output;
+
+	wire stall_before_if = (~is_inst_hit | ~is_data_hit);
+	wire stall_before_mem = ~is_data_hit;
+	reg [1:0] mem_fetch_owner;
 	reg instruction_fetech;
 	//Pipeline latches
 	reg [`WORD_SIZE-1:0] pc_num_inst, if_id_num_inst, id_ex_num_inst, id_ex_jump_target_addr;
@@ -80,18 +102,21 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	reg [`WORD_SIZE-1:0] id_ex_read_out1, id_ex_read_out2, ex_mem_read_out2;
 	//from data memory
 	reg [`WORD_SIZE-1:0] mem_wb_read_data;
-
-	//
+	//fromPC
 	reg [`WORD_SIZE-1:0] if_id_pred_pc, id_ex_pred_pc;
 
 	//Assign wires
-	assign address1 = pc;
-	assign readM1 = instruction_fetech;
+	assign address1 = (mem_fetch_owner == 2'b01) ? inst_read_address : data_read_address;
+	assign address2 = (mem_fetch_owner == 2'b01) ? inst_write_address: data_write_address;
+	assign readM1 = inst_mem_read_req | data_mem_read_req;
+	assign readM2 = 0;
+	assign writeM2 = inst_mem_write_req | data_mem_write_req;
 	assign data1 = `WORD_SIZE'bz;
-	assign data2 = ex_mem_mem_write ? ex_mem_read_out2 : `WORD_SIZE'bz; 
+	assign data2 = (mem_fetch_owner == 2'b01) ? inst_mem_fetch_output : data_mem_fetch_output; 
 	assign output_port = id_ex_is_wwd ? A : 0; 
 	assign is_halted = id_ex_is_halted;
 	assign num_inst = id_ex_num_inst;
+
 	//regfile
 	assign rs = if_id_instruction[11:10];
 	assign rt = if_id_instruction[9:8];
@@ -110,10 +135,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	: (id_ex_alu_src == 2'b11) ? 8
 	: ((forwardB == 2'b00) ? id_ex_read_out2 : 
 	((forwardB == 2'b01) ? wb : ex_mem_wb));
-	//Data memory
-	assign address2 = ex_mem_alu_result;
-	assign readM2 = ex_mem_mem_read;
-	assign writeM2 = ex_mem_mem_write;
+
 	
 	alu ALU(.A(A), .B(B), .funcCode(id_ex_alu_op), .C(C));
 	register_file REG( 
@@ -166,39 +188,39 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 		.target(btb_target)
 	);
 	cache INST_CACHE(		
-		.address(), 
+		.address(pc), 
 		.mem_read(instruction_fetech), 
 		.mem_write(0),
-		.mem_fetch_input(),
+		.mem_fetch_input(data1),
 		.input_data(`WORD_SIZE'bz),
 		.read_ack(read_ack),
 		.write_ack(write_ack),
 		.reset_n(Reset_N),
 		.clk(Clk),
-		.is_hit(),
-		.output_data(),
-		.mem_fetch_output(),
-		.req_mem_read(),
-		.req_mem_read_address(),
-		.req_mem_write(),
-		.req_mem_write_address());
+		.is_hit(is_inst_hit),
+		.output_data(inst_output),
+		.mem_fetch_output(inst_mem_fetch_output),
+		.req_mem_read(inst_mem_read_req),
+		.req_mem_read_address(inst_read_address),
+		.req_mem_write(inst_mem_write_req),
+		.req_mem_write_address(inst_write_address));
 	cache DATA_CACHE(
 		.address(address2), 
 		.mem_read(ex_mem_mem_read), 
 		.mem_write(ex_mem_mem_write),
-		.mem_fetch_input(),
+		.mem_fetch_input(data1),
 		.input_data(ex_mem_read_out2),
 		.read_ack(read_ack),
 		.write_ack(write_ack),
 		.reset_n(Reset_N),
 		.clk(Clk),
-		.is_hit(),
-		.output_data(),
-		.mem_fetch_output(),
-		.req_mem_read(),
-		.req_mem_read_address(),
-		.req_mem_write(),
-		.req_mem_write_address());
+		.is_hit(is_data_hit),
+		.output_data(data_req_output),
+		.mem_fetch_output(data_mem_fetch_output),
+		.req_mem_read(data_mem_read_req),
+		.req_mem_read_address(data_read_address),
+		.req_mem_write(data_mem_write_req),
+		.req_mem_write_address(data_write_address));
 
 	initial begin
 		init();
@@ -249,6 +271,15 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 		else if (id_ex_branch && bcond) begin
 			btb_target = target;
 		end
+
+		if(~is_inst_hit && mem_fetch_owner == 2'b00)
+			mem_fetch_owner = 2'b01;
+		else if(~is_data_hit && mem_fetch_owner == 2'b00)
+			mem_fetch_owner = 2'b10;
+		else if(is_inst_hit && mem_fetch_owner == 2'b01)
+			mem_fetch_owner = 2'b00;
+		else if(is_inst_hit && mem_fetch_owner == 2'b10)
+			mem_fetch_owner = 2'b00;
 	end
 
 	always @(posedge Clk) begin
@@ -258,128 +289,146 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 		else begin
 			//Contorl handling
 			//stall condition 1, 2, 3, 4, mem_read or normal progress
-			if (id_ex_jtype_jump && (id_ex_pred_pc != id_ex_jump_target_addr)) begin
-				pc <= id_ex_jump_target_addr;
-				instruction_fetech <= 1;
-			end
-			else if (id_ex_rtype_jump && (id_ex_pred_pc != A)) begin
-				pc <= A;
-				instruction_fetech <= 1;
-			end
-			else if (id_ex_branch && bcond && (id_ex_pred_pc != target)) begin
-				pc <= target;
-				instruction_fetech <= 1;
-			end
-			else if (id_ex_branch && ~bcond && id_ex_pred_pc != id_ex_pc_plus_one) begin
-				pc <= id_ex_pc_plus_one;
-				instruction_fetech <= 1;
-			end
-			else if(is_cur_inst_halted) begin
-				instruction_fetech <= 0;
-			end
-			else if (mem_read) begin
-				instruction_fetech <= 1;
-				pc_num_inst <= pc_num_inst;
+			if(is_inst_hit & is_data_hit) begin
+				if (id_ex_jtype_jump && (id_ex_pred_pc != id_ex_jump_target_addr)) begin
+					pc <= id_ex_jump_target_addr;
+					instruction_fetech <= 1;
+				end
+				else if (id_ex_rtype_jump && (id_ex_pred_pc != A)) begin
+					pc <= A;
+					instruction_fetech <= 1;
+				end
+				else if (id_ex_branch && bcond && (id_ex_pred_pc != target)) begin
+					pc <= target;
+					instruction_fetech <= 1;
+				end
+				else if (id_ex_branch && ~bcond && id_ex_pred_pc != id_ex_pc_plus_one) begin
+					pc <= id_ex_pc_plus_one;
+					instruction_fetech <= 1;
+				end
+				else if(is_cur_inst_halted) begin
+					instruction_fetech <= 0;
+				end
+				else if (mem_read) begin
+					instruction_fetech <= 1;
+					pc_num_inst <= pc_num_inst;
+				end
+				else begin
+					pc <= next_pc;
+					pc_num_inst <= pc_num_inst + 1;
+					instruction_fetech <= 1;
+				end
+
+				//Progress pipeline
+				if_id_pc <= pc;
+				if_id_pc_plus_one <= pc + 1;
+				if_id_instruction <= inst_output;
+				if_id_pred_pc <= pred_pc;				
+			
+				
+				//Flush control outputs
+				if(mem_read || is_stall) begin
+					flush <= 1;
+					if_id_num_inst <= if_id_num_inst;
+				end
+				else begin
+					flush <= 0;
+					if_id_num_inst <= pc_num_inst;
+				end
 			end
 			else begin
-				pc <= next_pc;
-				pc_num_inst <= pc_num_inst + 1;
-				instruction_fetech <= 1;
-			end
-
-			//Progress pipeline
-			if_id_pc <= pc;
-			if_id_pc_plus_one <= pc + 1;
-			if_id_instruction <= data1;
-			if_id_pred_pc <= pred_pc;
-
-			//Flush control outputs
-			if(mem_read || is_stall) begin
 				flush <= 1;
-				if_id_num_inst <= if_id_num_inst;
+			end
+			if(is_data_hit) begin
+				//Ignore contorl unit outputs when it is stall condion
+				if(is_stall) begin
+					id_ex_pc <= id_ex_pc;
+					id_ex_pc_plus_one <= id_ex_pc_plus_one;
+					id_ex_pred_pc <= 0;
+					id_ex_branch <= 0;
+					id_ex_rtype_jump <= 0;
+					id_ex_jtype_jump <= 0;
+					id_ex_alu_op <= 0;
+					id_ex_alu_src <= 0;
+					id_ex_reg_dest <= 0;
+					id_ex_mem_read <= 0;
+					id_ex_mem_to_reg <= 0;
+					id_ex_pc_to_reg <= 0;
+					id_ex_mem_write <= 0;
+					id_ex_reg_write <= 0;
+					id_ex_rd <= 0;
+					id_ex_rt <= 0;
+					id_ex_rs <= 0;
+					id_ex_read_out1 <= 0;
+					id_ex_read_out2 <= 0;
+					id_ex_sign_extended_imm <= 0;
+					id_ex_is_halted <= 0;
+					id_ex_is_wwd <= 0;
+					pc_num_inst <= if_id_num_inst;
+					if_id_num_inst <= id_ex_num_inst;
+					id_ex_num_inst <= id_ex_num_inst;
+				end
+				else begin
+					id_ex_pc <= if_id_pc;
+					id_ex_pc_plus_one <= if_id_pc_plus_one;
+					id_ex_pred_pc <= if_id_pred_pc;
+					id_ex_branch <= branch;
+					id_ex_rtype_jump <= rtype_jump;
+					id_ex_jtype_jump <= jtype_jump;
+					id_ex_opcode <= if_id_instruction[15:12];
+					id_ex_jump_target_addr <= {if_id_pc_plus_one[15:12], if_id_instruction[11:0]};
+					id_ex_alu_op <= alu_op;
+					id_ex_alu_src <= alu_src;
+					id_ex_reg_dest <= reg_dest;
+					id_ex_mem_read <= mem_read;
+					id_ex_mem_to_reg <= mem_to_reg;
+					id_ex_pc_to_reg <= pc_to_reg;
+					id_ex_mem_write <= mem_write;
+					id_ex_reg_write <= reg_write;
+					id_ex_rd <= if_id_instruction[7:6];
+					id_ex_rt <= rt;
+					id_ex_rs <= rs;
+					id_ex_read_out1 <= read_out1;
+					id_ex_read_out2 <= read_out2;
+					id_ex_sign_extended_imm <= sign_extended_imm;
+					id_ex_is_halted <= is_cur_inst_halted;
+					id_ex_is_wwd <= is_wwd;
+					id_ex_num_inst <= if_id_num_inst;	
+				end
+
+				ex_mem_pc_plus_one <= id_ex_pc_plus_one;
+				ex_mem_alu_result <= C;
+				ex_mem_read_out2 <= id_ex_read_out2;
+				if(id_ex_reg_dest == 2'b00) 
+					ex_mem_dest <= id_ex_rd;
+				else if (id_ex_reg_dest == 2'b01)
+					ex_mem_dest <= id_ex_rt;
+				else 
+					ex_mem_dest <= 2'b10;
+				ex_mem_mem_read <= id_ex_mem_read;
+				ex_mem_mem_write <= id_ex_mem_write;
+				ex_mem_mem_to_reg <= id_ex_mem_to_reg;
+				ex_mem_pc_to_reg <= id_ex_pc_to_reg;
+				ex_mem_reg_write <= id_ex_reg_write;
+
+				mem_wb_pc_plus_one <= ex_mem_pc_plus_one;
+				mem_wb_dest <= ex_mem_dest;
+				mem_wb_alu_result <= ex_mem_alu_result;
+				mem_wb_read_data <= data_output;
+				mem_wb_mem_to_reg <= ex_mem_mem_to_reg;
+				mem_wb_pc_to_reg <= ex_mem_pc_to_reg;
+				mem_wb_reg_write <= ex_mem_reg_write;	
 			end
 			else begin
-				flush <= 0;
-				if_id_num_inst <= pc_num_inst;
-			end
-			//Ignore contorl unit outputs when it is stall condion
-			if(is_stall) begin
-				id_ex_pc <= id_ex_pc;
-				id_ex_pc_plus_one <= id_ex_pc_plus_one;
-				id_ex_pred_pc <= 0;
-				id_ex_branch <= 0;
-				id_ex_rtype_jump <= 0;
-				id_ex_jtype_jump <= 0;
-				id_ex_alu_op <= 0;
-				id_ex_alu_src <= 0;
-				id_ex_reg_dest <= 0;
-				id_ex_mem_read <= 0;
-				id_ex_mem_to_reg <= 0;
-				id_ex_pc_to_reg <= 0;
-				id_ex_mem_write <= 0;
-				id_ex_reg_write <= 0;
-				id_ex_rd <= 0;
-				id_ex_rt <= 0;
-				id_ex_rs <= 0;
-				id_ex_read_out1 <= 0;
-				id_ex_read_out2 <= 0;
-				id_ex_sign_extended_imm <= 0;
-				id_ex_is_halted <= 0;
-				id_ex_is_wwd <= 0;
-				pc_num_inst <= if_id_num_inst;
-				if_id_num_inst <= id_ex_num_inst;
-				id_ex_num_inst <= id_ex_num_inst;
-			end
-			else begin
-				id_ex_pc <= if_id_pc;
-				id_ex_pc_plus_one <= if_id_pc_plus_one;
-				id_ex_pred_pc <= if_id_pred_pc;
-				id_ex_branch <= branch;
-				id_ex_rtype_jump <= rtype_jump;
-				id_ex_jtype_jump <= jtype_jump;
-				id_ex_opcode <= if_id_instruction[15:12];
-				id_ex_jump_target_addr <= {if_id_pc_plus_one[15:12], if_id_instruction[11:0]};
-				id_ex_alu_op <= alu_op;
-				id_ex_alu_src <= alu_src;
-				id_ex_reg_dest <= reg_dest;
-				id_ex_mem_read <= mem_read;
-				id_ex_mem_to_reg <= mem_to_reg;
-				id_ex_pc_to_reg <= pc_to_reg;
-				id_ex_mem_write <= mem_write;
-				id_ex_reg_write <= reg_write;
-				id_ex_rd <= if_id_instruction[7:6];
-				id_ex_rt <= rt;
-				id_ex_rs <= rs;
-				id_ex_read_out1 <= read_out1;
-				id_ex_read_out2 <= read_out2;
-				id_ex_sign_extended_imm <= sign_extended_imm;
-				id_ex_is_halted <= is_cur_inst_halted;
-				id_ex_is_wwd <= is_wwd;
-				id_ex_num_inst <= if_id_num_inst;	
+				mem_wb_pc_plus_one <= mem_wb_pc_plus_one;
+				mem_wb_dest <= mem_wb_dest;
+				mem_wb_alu_result <= mem_wb_alu_result;
+				mem_wb_read_data <= mem_wb_read_data;
+				mem_wb_mem_to_reg <= mem_wb_mem_to_reg;
+				mem_wb_pc_to_reg <= mem_wb_pc_to_reg;
+				mem_wb_reg_write <= 0;	
 			end
 
-			ex_mem_pc_plus_one <= id_ex_pc_plus_one;
-			ex_mem_alu_result <= C;
-			ex_mem_read_out2 <= id_ex_read_out2;
-			if(id_ex_reg_dest == 2'b00) 
-				ex_mem_dest <= id_ex_rd;
-			else if (id_ex_reg_dest == 2'b01)
-				ex_mem_dest <= id_ex_rt;
-			else 
-				ex_mem_dest <= 2'b10;
-			ex_mem_mem_read <= id_ex_mem_read;
-			ex_mem_mem_write <= id_ex_mem_write;
-			ex_mem_mem_to_reg <= id_ex_mem_to_reg;
-			ex_mem_pc_to_reg <= id_ex_pc_to_reg;
-			ex_mem_reg_write <= id_ex_reg_write;
-
-			mem_wb_pc_plus_one <= ex_mem_pc_plus_one;
-			mem_wb_dest <= ex_mem_dest;
-			mem_wb_alu_result <= ex_mem_alu_result;
-			mem_wb_read_data <= data2;
-			mem_wb_mem_to_reg <= ex_mem_mem_to_reg;
-			mem_wb_pc_to_reg <= ex_mem_pc_to_reg;
-			mem_wb_reg_write <= ex_mem_reg_write;
 		end
 	end
 
@@ -396,6 +445,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 		id_ex_reg_write <= 0;
 		ex_mem_reg_write <= 0;
 		mem_wb_reg_write <= 0;
+		mem_fetch_owner <= 0;
 	end
 	endtask
 
