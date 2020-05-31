@@ -26,7 +26,7 @@ module cpu_TB();
 
 	// instantiate the unit under test
 	cpu UUT (clk, reset_n, readM1, address1, data1, readM2, writeM2, address2, data2, num_inst, output_port, is_halted, read_ack, write_ack);
-	Memory NUUT(!clk, reset_n, readM1, address1, data1, readM2, writeM2, address2, data2, req_mem_read, req_mem_write, read_ack, write_ack);
+	Memory NUUT(!clk, reset_n, readM1, address1, data1, readM2, writeM2, address2, data2, read_ack, write_ack);
 
 	// initialize inputs
 	initial begin

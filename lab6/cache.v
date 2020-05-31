@@ -87,9 +87,9 @@ is_hit, mem_fetch_output, req_mem_read, req_mem_read_address, req_mem_write, req
                 if(dirty_bit_bank[target_bank][address_idx]) //Write back only when it is dirty
                     write_back = 1;
                 req_mem_write_address = {tag_bank[target_bank][address_idx], address_idx, 2'b00};
-                tag_bank[target_bank][address_idx] = address_tag;
-                valid_bank[target_bank][address_idx] = 0;
             end
+            tag_bank[target_bank][address_idx] = address_tag;
+            valid_bank[target_bank][address_idx] = 0;
         end
     end
 
@@ -121,6 +121,7 @@ is_hit, mem_fetch_output, req_mem_read, req_mem_read_address, req_mem_write, req
                         resently_used_bank[target_bank][address_idx] <= 1;
                         resently_used_bank[~target_bank][address_idx] <= 0;
                         waiting <= 0;
+                        req_mem_read <= 0;
                     end
                     else if(~waiting & (mem_read | mem_write)) begin
                         req_mem_read <= 1;
@@ -130,6 +131,8 @@ is_hit, mem_fetch_output, req_mem_read, req_mem_read_address, req_mem_write, req
                         waiting <= 1;
                     end
                 end
+                if(write_ack) 
+                    req_mem_write <= 0;
             end
         end
     end

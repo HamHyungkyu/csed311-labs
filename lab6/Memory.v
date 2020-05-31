@@ -4,7 +4,7 @@
 `define WORD_SIZE 16	//	instead of 2^16 words to reduce memory
 			//	requirements in the Active-HDL simulator 
 
-module Memory(clk, reset_n, readM1, address1, data1, readM2, writeM2, address2, data2, req_mem_read, req_mem_write, read_ack, write_ack);
+module Memory(clk, reset_n, readM1, address1, data1, readM2, writeM2, address2, data2, read_ack, write_ack);
 	input clk;
 	input reset_n;
 	input readM1;
@@ -15,9 +15,6 @@ module Memory(clk, reset_n, readM1, address1, data1, readM2, writeM2, address2, 
 	input [`WORD_SIZE-1:0] address2;
 	inout data2;
 	wire [`WORD_SIZE*4-1:0] data2;
-
-	input req_mem_read;
-	input req_mem_write;
 
 	output reg read_ack;
 	output reg write_ack;
@@ -238,30 +235,27 @@ module Memory(clk, reset_n, readM1, address1, data1, readM2, writeM2, address2, 
 				memory[16'hc6] <= 16'hf01d;
 				read_ack <= 1;
 				write_ack <= 1;
+				read_delay <= 2'b11;
+				write_delay <= 2'b11;
 			end
 		else begin
 			if(readM1 || readM2 || writeM2) begin
-				if(req_mem_read || req_mem_write) begin
-					read_delay <= 2'b11;
-					write_delay <= 2'b11;
+				if(read_delay > 0 && readM1) begin 
+					read_delay <= read_delay - 1;
+					read_ack <= 0;
 				end
-				else if(read_delay || write_delay) begin
-					if(read_delay) begin 
-						read_delay <= read_delay - 1;
-						read_ack <= 0;
-					end
-					if(write_delay) begin
-						write_delay <= write_delay - 1;
-						write_ack <= 0;
-					end
+				if(write_delay > 0 && writeM2) begin
+					write_delay <= write_delay - 1;
+					write_ack <= 0;
 				end
-				if(read_delay == 0) begin
+				if(read_delay == 0 && readM1 ) begin
 					read_ack <= 1;
-					if(readM1) data1 <= (writeM2 & address1 == address2) ? data2 : {memory[address1_start], memory[address1_start + 1], memory[address1_start + 2], memory[address1_start + 3]};
-					if(readM2) outputData2 <= {memory[address2_start], memory[address2_start + 1], memory[address2_start + 2], memory[address2_start + 3]};
+					read_delay <= 2'b11;
+					if(readM1) data1 <= {memory[address1_start], memory[address1_start + 1], memory[address1_start + 2], memory[address1_start + 3]};
 				end
-				if(write_delay == 0) begin
+				if(write_delay == 0 && writeM2 ) begin
 					write_ack <= 1;
+					read_delay <= 2'b11;
 					if(writeM2) begin
 						memory[address2_start] <= data2[`WORD_SIZE*4-1:`WORD_SIZE*3];
 						memory[address2_start + 1] <= data2[`WORD_SIZE*3-1:`WORD_SIZE*2];
@@ -269,6 +263,10 @@ module Memory(clk, reset_n, readM1, address1, data1, readM2, writeM2, address2, 
 						memory[address2_start + 3] <= data2[`WORD_SIZE-1:0];
 					end
 				end
+			end
+			else begin
+				read_delay <= 2'b11;
+				write_delay <= 2'b11;
 			end
 		end
 endmodule

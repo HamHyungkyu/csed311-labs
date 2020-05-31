@@ -74,9 +74,10 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 	wire [`WORD_SIZE-1:0] data_write_address;
 	wire [`WORD_SIZE-1:0] data_req;
 	wire [`WORD_SIZE*4-1:0] data_mem_fetch_output;
+	
+	wire stall_before_mem;
+	wire stall_if;
 
-	wire stall_before_if = (~is_inst_hit | ~is_data_hit);
-	wire stall_before_mem = ~is_data_hit;
 	reg [1:0] mem_fetch_owner;
 	reg instruction_fetech;
 	//Pipeline latches
@@ -111,7 +112,6 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 	assign readM1 = inst_mem_read_req | data_mem_read_req;
 	assign readM2 = 0;
 	assign writeM2 = inst_mem_write_req | data_mem_write_req;
-	assign data1 = `WORD_SIZE'bz;
 	assign data2 = (mem_fetch_owner == 2'b01) ? inst_mem_fetch_output : data_mem_fetch_output; 
 	assign output_port = id_ex_is_wwd ? A : 0; 
 	assign is_halted = id_ex_is_halted;
@@ -138,7 +138,9 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 
 	//Cache
 	assign data_req = ex_mem_mem_write ? ex_mem_read_out2 : `WORD_SIZE'bz;
-
+	assign stall_before_mem = (~is_data_hit & (ex_mem_mem_read | ex_mem_mem_write));
+	assign stall_if = (~is_inst_hit | stall_before_mem);
+	
 	alu ALU(.A(A), .B(B), .funcCode(id_ex_alu_op), .C(C));
 	register_file REG( 
 		.read1(rs),
@@ -287,9 +289,13 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 			init();
 		end
 		else begin
-			//Contorl handling
-			//stall condition 1, 2, 3, 4, mem_read or normal progress
-			if(is_inst_hit & is_data_hit) begin
+			if(stall_if) begin
+				flush <= 1;
+				instruction_fetech <= 1;
+			end
+			else begin
+				//Contorl handling
+				//stall condition 1, 2, 3, 4, mem_read or normal progress
 				if (id_ex_jtype_jump && (id_ex_pred_pc != id_ex_jump_target_addr)) begin
 					pc <= id_ex_jump_target_addr;
 					instruction_fetech <= 1;
@@ -336,10 +342,16 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 					if_id_num_inst <= pc_num_inst;
 				end
 			end
-			else begin
-				flush <= 1;
+			if(stall_before_mem) begin
+				mem_wb_pc_plus_one <= mem_wb_pc_plus_one;
+				mem_wb_dest <= mem_wb_dest;
+				mem_wb_alu_result <= mem_wb_alu_result;
+				mem_wb_read_data <= mem_wb_read_data;
+				mem_wb_mem_to_reg <= mem_wb_mem_to_reg;
+				mem_wb_pc_to_reg <= mem_wb_pc_to_reg;
+				mem_wb_reg_write <= 0;	
 			end
-			if(is_data_hit) begin
+			else begin
 				//Ignore contorl unit outputs when it is stall condion
 				if(is_stall) begin
 					id_ex_pc <= id_ex_pc;
@@ -418,15 +430,6 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 				mem_wb_mem_to_reg <= ex_mem_mem_to_reg;
 				mem_wb_pc_to_reg <= ex_mem_pc_to_reg;
 				mem_wb_reg_write <= ex_mem_reg_write;	
-			end
-			else begin
-				mem_wb_pc_plus_one <= mem_wb_pc_plus_one;
-				mem_wb_dest <= mem_wb_dest;
-				mem_wb_alu_result <= mem_wb_alu_result;
-				mem_wb_read_data <= mem_wb_read_data;
-				mem_wb_mem_to_reg <= mem_wb_mem_to_reg;
-				mem_wb_pc_to_reg <= mem_wb_pc_to_reg;
-				mem_wb_reg_write <= 0;	
 			end
 
 		end
