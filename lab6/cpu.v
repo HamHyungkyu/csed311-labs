@@ -19,10 +19,10 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 	output [`WORD_SIZE-1:0] address2;
 	wire [`WORD_SIZE-1:0] address2;
 
-	input [`WORD_SIZE-1:0] data1;
-	wire [`WORD_SIZE-1:0] data1;
-	inout [`WORD_SIZE-1:0] data2;
-	wire [`WORD_SIZE-1:0] data2;
+	input [`WORD_SIZE*4-1:0] data1;
+	wire [`WORD_SIZE*4-1:0] data1;
+	inout [`WORD_SIZE*4-1:0] data2;
+	wire [`WORD_SIZE*4-1:0] data2;
 
 	output [`WORD_SIZE-1:0] num_inst;
 	wire [`WORD_SIZE-1:0] num_inst;
@@ -165,6 +165,40 @@ module cpu(Clk, Reset_N, readM1, address1, data1, readM2, writeM2, address2, dat
 		.bcond(bcond),
 		.target(btb_target)
 	);
+	cache INST_CACHE(		
+		.address(), 
+		.mem_read(instruction_fetech), 
+		.mem_write(0),
+		.mem_fetch_input(),
+		.input_data(`WORD_SIZE'bz),
+		.read_ack(read_ack),
+		.write_ack(write_ack),
+		.reset_n(Reset_N),
+		.clk(Clk),
+		.is_hit(),
+		.output_data(),
+		.mem_fetch_output(),
+		.req_mem_read(),
+		.req_mem_read_address(),
+		.req_mem_write(),
+		.req_mem_write_address());
+	cache DATA_CACHE(
+		.address(address2), 
+		.mem_read(ex_mem_mem_read), 
+		.mem_write(ex_mem_mem_write),
+		.mem_fetch_input(),
+		.input_data(ex_mem_read_out2),
+		.read_ack(read_ack),
+		.write_ack(write_ack),
+		.reset_n(Reset_N),
+		.clk(Clk),
+		.is_hit(),
+		.output_data(),
+		.mem_fetch_output(),
+		.req_mem_read(),
+		.req_mem_read_address(),
+		.req_mem_write(),
+		.req_mem_write_address());
 
 	initial begin
 		init();
