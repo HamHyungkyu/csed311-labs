@@ -26,6 +26,7 @@ is_hit, output_data, mem_fetch_output, req_mem_read, req_mem_read_address, req_m
     reg [`WORD_SIZE - 6:0] tag_bank [1:0][1:0];
     reg valid_bank [1:0][1:0];
     reg resently_used_bank [1:0][1:0];
+    reg dirty_bit_bank [1:0][1:0];
     reg [`WORD_SIZE*4-1:0] data_bank [1:0][1:0];
 
     reg [`WORD_SIZE*4-1:0] hitted_line;
@@ -62,7 +63,8 @@ is_hit, output_data, mem_fetch_output, req_mem_read, req_mem_read_address, req_m
                 resently_used_bank[1][address_idx] = 1;
             end 
             if(mem_write) begin
-               case (address_block_offset)
+                dirty_bit_bank[target_bank][address_idx] = 1;
+                case (address_block_offset)
                     2'b00: hitted_line = {input_data, hitted_line[`WORD_SIZE*3-1:0]};
                     2'b01: hitted_line = {hitted_line[`WORD_SIZE*4-1: `WORD_SIZE*3], input_data, hitted_line[`WORD_SIZE*2-1:0]};
                     2'b10: hitted_line = {hitted_line[`WORD_SIZE*4-1: `WORD_SIZE*2], input_data, hitted_line[`WORD_SIZE*1-1:0]};
@@ -80,7 +82,8 @@ is_hit, output_data, mem_fetch_output, req_mem_read, req_mem_read_address, req_m
             end
             else begin // Evict LRU
                 target_bank = resently_used_bank[0][address_idx] ? 1 : 0;
-                write_back = 1;
+                if(dirty_bit_bank[target_bank][address_idx])
+                    write_back = 1;
                 req_mem_write_address = {tag_bank[target_bank][address_idx], address_idx, 2'b00};
                 tag_bank[target_bank][address_idx] = address_tag;
                 valid_bank[target_bank][address_idx] = 0;
@@ -111,6 +114,7 @@ is_hit, output_data, mem_fetch_output, req_mem_read, req_mem_read_address, req_m
                 if(read_ack) begin
                     if(waiting) begin
                         valid_bank[target_bank][address_idx] <= 1;
+                        dirty_bit_bank[target_bank][address_idx] <= 0;
                         data_bank[target_bank][address_idx] <= mem_fetch_input;
                         resently_used_bank[target_bank][address_idx] <= 1;
                         resently_used_bank[~target_bank][address_idx] <= 0;
