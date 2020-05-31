@@ -19,8 +19,8 @@ module Memory(clk, reset_n, readM1, address1, data1, readM2, writeM2, address2, 
 	input req_mem_read;
 	input req_mem_write;
 
-	output read_ack;
-	output write_ack;
+	output reg read_ack;
+	output reg write_ack;
 
 	reg [`WORD_SIZE-1:0] memory [0:`MEMORY_SIZE-1];
 	reg [`WORD_SIZE*4-1:0] outputData2;
@@ -236,6 +236,8 @@ module Memory(clk, reset_n, readM1, address1, data1, readM2, writeM2, address2, 
 				memory[16'hc4] <= 16'h4ffe;
 				memory[16'hc5] <= 16'hf819;
 				memory[16'hc6] <= 16'hf01d;
+				read_ack <= 1;
+				write_ack <= 1;
 			end
 		else begin
 			if(readM1 || readM2 || writeM2) begin
@@ -255,7 +257,7 @@ module Memory(clk, reset_n, readM1, address1, data1, readM2, writeM2, address2, 
 				end
 				if(read_delay == 0) begin
 					read_ack <= 1;
-					if(readM1) data1 <= (writeM2 & address1 == address2) ? data2 : {memory[address1_start], memory[address1_start + 1], memory[address1_start + 2], memory[address1_start + 3];
+					if(readM1) data1 <= (writeM2 & address1 == address2) ? data2 : {memory[address1_start], memory[address1_start + 1], memory[address1_start + 2], memory[address1_start + 3]};
 					if(readM2) outputData2 <= {memory[address2_start], memory[address2_start + 1], memory[address2_start + 2], memory[address2_start + 3]};
 				end
 				if(write_delay == 0) begin

@@ -2,7 +2,7 @@
 `include "opcodes.v"
 `define WORD_SIZE 16    // data and address word size
 
-module cpu(Clk, Reset_N, readM1, address1, data1, read_ack, readM2, writeM2, address2, data2, write_ack, num_inst, output_port, is_halted);
+module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, data2, num_inst, output_port, is_halted, read_ack, write_ack);
 	input Clk;
 	wire Clk;
 	input Reset_N;
@@ -72,7 +72,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, read_ack, readM2, writeM2, add
 	wire data_mem_write_req;
 	wire [`WORD_SIZE-1:0] data_read_address;
 	wire [`WORD_SIZE-1:0] data_write_address;
-	wire [`WORD_SIZE-1:0] data_req = ex_mem_mem_write ? ex_mem_read_out2 : `WORD_SIZE'bz;
+	wire [`WORD_SIZE-1:0] data_req;
 	wire [`WORD_SIZE*4-1:0] data_mem_fetch_output;
 
 	wire stall_before_if = (~is_inst_hit | ~is_data_hit);
@@ -136,7 +136,9 @@ module cpu(Clk, Reset_N, readM1, address1, data1, read_ack, readM2, writeM2, add
 	: ((forwardB == 2'b00) ? id_ex_read_out2 : 
 	((forwardB == 2'b01) ? wb : ex_mem_wb));
 
-	
+	//Cache
+	assign data_req = ex_mem_mem_write ? ex_mem_read_out2 : `WORD_SIZE'bz;
+
 	alu ALU(.A(A), .B(B), .funcCode(id_ex_alu_op), .C(C));
 	register_file REG( 
 		.read1(rs),
@@ -190,7 +192,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1, read_ack, readM2, writeM2, add
 	cache INST_CACHE(		
 		.address(pc), 
 		.mem_read(instruction_fetech), 
-		.mem_write(0),
+		.mem_write(1'b0),
 		.mem_fetch_input(data1),
 		.data(inst_output),
 		.read_ack(read_ack),

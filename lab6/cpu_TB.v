@@ -11,11 +11,11 @@ module cpu_TB();
 	
 	wire readM1;
 	wire [`WORD_SIZE-1:0] address1;
-	wire [`WORD_SIZE-1:0] data1;
+	wire [`WORD_SIZE*4-1:0] data1;
 	wire readM2;
 	wire writeM2;
 	wire [`WORD_SIZE-1:0] address2;
-	wire [`WORD_SIZE-1:0] data2;
+	wire [`WORD_SIZE*4-1:0] data2;
 
 	// for debuging purpose
 	wire [`WORD_SIZE-1:0] num_inst;		// number of instruction during execution

@@ -10,7 +10,7 @@ is_hit, mem_fetch_output, req_mem_read, req_mem_read_address, req_mem_write, req
     input mem_read;
     input mem_write;
     input [`WORD_SIZE*4-1:0] mem_fetch_input;
-    input [`WORD_SIZE-1:0] _data;
+    input [`WORD_SIZE-1:0] data;
     input read_ack, write_ack;
     input clk;
     input reset_n;
@@ -67,10 +67,10 @@ is_hit, mem_fetch_output, req_mem_read, req_mem_read_address, req_mem_write, req
             if(mem_write) begin
                 dirty_bit_bank[target_bank][address_idx] = 1;
                 case (address_block_offset)
-                    2'b00: hitted_line = {input_data, hitted_line[`WORD_SIZE*3-1:0]};
-                    2'b01: hitted_line = {hitted_line[`WORD_SIZE*4-1: `WORD_SIZE*3], input_data, hitted_line[`WORD_SIZE*2-1:0]};
-                    2'b10: hitted_line = {hitted_line[`WORD_SIZE*4-1: `WORD_SIZE*2], input_data, hitted_line[`WORD_SIZE*1-1:0]};
-                    2'b11: hitted_line = {hitted_line[`WORD_SIZE*4-1: `WORD_SIZE*1], input_data};
+                    2'b00: hitted_line = {data, hitted_line[`WORD_SIZE*3-1:0]};
+                    2'b01: hitted_line = {hitted_line[`WORD_SIZE*4-1: `WORD_SIZE*3], data, hitted_line[`WORD_SIZE*2-1:0]};
+                    2'b10: hitted_line = {hitted_line[`WORD_SIZE*4-1: `WORD_SIZE*2], data, hitted_line[`WORD_SIZE*1-1:0]};
+                    2'b11: hitted_line = {hitted_line[`WORD_SIZE*4-1: `WORD_SIZE*1], data};
                 endcase  
             end                               
         end
