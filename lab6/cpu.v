@@ -290,7 +290,6 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 		end
 		else begin
 			if(stall_if) begin
-				flush <= 1;
 				instruction_fetech <= 1;
 			end
 			else begin
@@ -329,7 +328,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 				if_id_pc <= pc;
 				if_id_pc_plus_one <= pc + 1;
 				if_id_instruction <= inst_output;
-				if_id_pred_pc <= pred_pc;				
+				if_id_pred_pc <= pred_pc;
 			
 				
 				//Flush control outputs
