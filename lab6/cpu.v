@@ -35,6 +35,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 
 	reg [`WORD_SIZE-1:0] pc, next_pc, target;
 	reg is_stall, bcond;
+	reg before_if_stall;
 	//ALU wries
 	wire [`WORD_SIZE-1:0] A, B, C, sign_extended_imm;
 	
@@ -285,8 +286,8 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 			init();
 		end
 		else begin
+			before_if_stall <= stall_if;
 			if(stall_if) begin
-				// flush <= 1;
 				instruction_fetech <= 1;
 			end
 			else begin
@@ -321,14 +322,12 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 					pc_num_inst <= pc_num_inst + 1;
 					instruction_fetech <= 1;
 				end
-
 				//Progress pipeline
 				if_id_pc <= pc;
 				if_id_pc_plus_one <= pc + 1;
 				if_id_instruction <= inst_output;
 				if_id_pred_pc <= pred_pc;
 			
-				
 				//Flush control outputs
 				if(mem_read || is_stall) begin
 					flush <= 1;
@@ -377,9 +376,12 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 					id_ex_sign_extended_imm <= 0;
 					id_ex_is_halted <= 0;
 					id_ex_is_wwd <= 0;
-					pc_num_inst <= pc_num_inst;
-					if_id_num_inst <= if_id_num_inst;
-					id_ex_num_inst <= id_ex_num_inst;
+					if(before_if_stall == 0)begin
+						flush <= 1;
+						$display("pc numinst %x if_id_num_inst %x", pc_num_inst, if_id_num_inst);
+						pc_num_inst <= if_id_num_inst;
+						if_id_num_inst <= id_ex_num_inst;
+					end
 				end
 				else begin
 					id_ex_pc <= if_id_pc;
@@ -457,6 +459,9 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 	//Initialize task
 	task init; 
 	begin
+		if_id_pc <= 0;
+		if_id_num_inst <= 0;
+		ex_mem_num_inst <= 0;
 		pc <= 0;
 		next_pc <= 0;
 		pc_num_inst <= 0;
