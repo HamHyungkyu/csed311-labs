@@ -10,7 +10,7 @@ is_hit, mem_fetch_output, req_mem_read, req_mem_read_address, req_mem_write, req
     input mem_read;
     input mem_write;
     input [`WORD_SIZE*4-1:0] mem_fetch_input;
-    input [`WORD_SIZE-1:0] data;
+    inout [`WORD_SIZE-1:0] data;
     input read_ack, write_ack;
     input clk;
     input reset_n;
@@ -93,47 +93,47 @@ is_hit, mem_fetch_output, req_mem_read, req_mem_read_address, req_mem_write, req
         end
     end
 
+    always @(negedge clk) begin
+        if(is_hit) begin
+            if(mem_read) begin
+                case (address_block_offset)
+                    2'b00: output_data <= hitted_line[`WORD_SIZE*4-1: `WORD_SIZE*3];
+                    2'b01: output_data <= hitted_line[`WORD_SIZE*3-1: `WORD_SIZE*2];
+                    2'b10: output_data <= hitted_line[`WORD_SIZE*2-1: `WORD_SIZE*1];
+                    2'b11: output_data <= hitted_line[`WORD_SIZE-1: 0];
+                endcase
+            end
+            else if(mem_write) begin
+                data_bank[target_bank][address_idx] <= hitted_line;
+            end  
+        end
+    end
+
     always @(posedge clk) begin
         if(!reset_n) begin
             init_cache();
         end
-        else begin
-            //Cache hit
-            if(is_hit) begin
-                if(mem_read) begin
-                    case (address_block_offset)
-                        2'b00: output_data <= hitted_line[`WORD_SIZE*4-1: `WORD_SIZE*3];
-                        2'b01: output_data <= hitted_line[`WORD_SIZE*3-1: `WORD_SIZE*2];
-                        2'b10: output_data <= hitted_line[`WORD_SIZE*2-1: `WORD_SIZE*1];
-                        2'b11: output_data <= hitted_line[`WORD_SIZE-1: 0];
-                    endcase
+        else if(~is_hit) begin
+            if(read_ack) begin
+                if(waiting) begin
+                    valid_bank[target_bank][address_idx] <= 1;
+                    dirty_bit_bank[target_bank][address_idx] <= 0;
+                    data_bank[target_bank][address_idx] <= mem_fetch_input;
+                    resently_used_bank[target_bank][address_idx] <= 1;
+                    resently_used_bank[~target_bank][address_idx] <= 0;
+                    waiting <= 0;
+                    req_mem_read <= 0;
+                    if(write_ack) 
+                        req_mem_write <= 0;
                 end
-                else if(mem_write) begin
-                    data_bank[target_bank][address_idx] <= hitted_line;
-                end  
-            end
-            else begin
-                if(read_ack) begin
-                    if(waiting) begin
-                        valid_bank[target_bank][address_idx] <= 1;
-                        dirty_bit_bank[target_bank][address_idx] <= 0;
-                        data_bank[target_bank][address_idx] <= mem_fetch_input;
-                        resently_used_bank[target_bank][address_idx] <= 1;
-                        resently_used_bank[~target_bank][address_idx] <= 0;
-                        waiting <= 0;
-                        req_mem_read <= 0;
+                else if(~waiting & (mem_read | mem_write)) begin
+                    req_mem_read <= 1;
+                    if(write_back & write_ack) begin
+                        req_mem_write <= 1;
                     end
-                    else if(~waiting & (mem_read | mem_write)) begin
-                        req_mem_read <= 1;
-                        if(write_back & write_ack) begin
-                            req_mem_write <= 1;
-                        end
-                        waiting <= 1;
-                    end
+                    waiting <= 1;
                 end
-                if(write_ack) 
-                    req_mem_write <= 0;
-            end
+            end  
         end
     end
 
