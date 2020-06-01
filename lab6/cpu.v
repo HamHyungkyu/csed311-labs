@@ -286,7 +286,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 		end
 		else begin
 			if(stall_if) begin
-				flush <= 1;
+				// flush <= 1;
 				instruction_fetech <= 1;
 			end
 			else begin
@@ -351,7 +351,6 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 				mem_wb_mem_to_reg <= mem_wb_mem_to_reg;
 				mem_wb_pc_to_reg <= mem_wb_pc_to_reg;
 				mem_wb_reg_write <= mem_wb_reg_write;	
-				output_num_inst <= output_num_inst;
 			end
 			else begin
 				//Ignore contorl unit outputs when it is stall condion
@@ -378,8 +377,8 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 					id_ex_sign_extended_imm <= 0;
 					id_ex_is_halted <= 0;
 					id_ex_is_wwd <= 0;
-					pc_num_inst <= if_id_num_inst;
-					if_id_num_inst <= id_ex_num_inst;
+					pc_num_inst <= pc_num_inst;
+					if_id_num_inst <= if_id_num_inst;
 					id_ex_num_inst <= id_ex_num_inst;
 				end
 				else begin
@@ -460,7 +459,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 	begin
 		pc <= 0;
 		next_pc <= 0;
-		pc_num_inst <= 1;
+		pc_num_inst <= 0;
 		instruction_fetech <= 0;
 		flush <= 0;
 		id_ex_mem_write <= 0;
