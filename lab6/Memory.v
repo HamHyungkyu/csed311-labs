@@ -251,7 +251,7 @@ module Memory(clk, reset_n, readM1, address1, data1, readM2, writeM2, address2, 
 				if(read_delay == 0 && readM1 ) begin
 					read_ack <= 1;
 					read_delay <= 2'b11;
-					if(readM1) data1 <= {memory[address1_start], memory[address1_start + 1], memory[address1_start + 2], memory[address1_start + 3]};
+					if(readM1) data1 <= {memory[address1_start], memory[address1_start + 1], memory[address1_start + 2],  memory[address1_start + 3]};
 				end
 				if(write_delay == 0 && writeM2 ) begin
 					write_ack <= 1;

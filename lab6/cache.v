@@ -1,6 +1,6 @@
 `define WORD_SIZE 16    // data and address word size
 
-module cache (address, mem_read, mem_write, mem_fetch_input, data, read_ack, write_ack, reset_n, clk, 
+module cache (address, mem_read, mem_write, mem_fetch_input, data, req_hold, read_ack, write_ack, reset_n, clk, 
 is_hit, mem_fetch_output, req_mem_read, req_mem_read_address, req_mem_write, req_mem_write_address);
     // Address format in this cache 
     // 15~3 : tag bits
@@ -11,6 +11,7 @@ is_hit, mem_fetch_output, req_mem_read, req_mem_read_address, req_mem_write, req
     input mem_write;
     input [`WORD_SIZE*4-1:0] mem_fetch_input;
     inout [`WORD_SIZE-1:0] data;
+    input req_hold;
     input read_ack, write_ack;
     input clk;
     input reset_n;
@@ -72,6 +73,12 @@ is_hit, mem_fetch_output, req_mem_read, req_mem_read_address, req_mem_write, req
                     2'b10: hitted_line = {hitted_line[`WORD_SIZE*4-1: `WORD_SIZE*2], data, hitted_line[`WORD_SIZE*1-1:0]};
                     2'b11: hitted_line = {hitted_line[`WORD_SIZE*4-1: `WORD_SIZE*1], data};
                 endcase  
+                $display("write %x %x", address, data);
+                $display("00 %x", data_bank[0][0]);
+                $display("01 %x", data_bank[0][1]);
+                $display("10 %x", data_bank[1][0]);
+                $display("11 %x", data_bank[1][1]);
+
             end                               
         end
         else begin
@@ -115,7 +122,7 @@ is_hit, mem_fetch_output, req_mem_read, req_mem_read_address, req_mem_write, req
         end
         else if(~is_hit) begin
             if(read_ack) begin
-                if(waiting) begin
+                if(waiting & req_hold) begin
                     valid_bank[target_bank][address_idx] <= 1;
                     dirty_bit_bank[target_bank][address_idx] <= 0;
                     data_bank[target_bank][address_idx] <= mem_fetch_input;
@@ -139,6 +146,11 @@ is_hit, mem_fetch_output, req_mem_read, req_mem_read_address, req_mem_write, req
 
     task init_cache;
     begin
+       tag_bank[0][0] <= 0;
+       tag_bank[0][1] <= 0;
+       tag_bank[1][0] <= 0;
+       tag_bank[1][1] <= 0;
+
        valid_bank[0][0] <= 0;
        valid_bank[0][1] <= 0;
        valid_bank[1][0] <= 0;

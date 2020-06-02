@@ -81,6 +81,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 	reg rest;
 
 	reg [1:0] mem_fetch_owner;
+	reg inst_req_hold, data_req_hold;
 	reg instruction_fetech;
 	//Pipeline latches
 	reg [`WORD_SIZE-1:0] pc_num_inst, if_id_num_inst, id_ex_num_inst, ex_mem_num_inst, mem_wb_num_inst, output_num_inst, id_ex_jump_target_addr;
@@ -202,6 +203,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 		.mem_write(1'b0),
 		.mem_fetch_input(data1),
 		.data(inst_output),
+		.req_hold(inst_req_hold),
 		.read_ack(read_ack),
 		.write_ack(write_ack),
 		.reset_n(Reset_N),
@@ -218,6 +220,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 		.mem_write(ex_mem_mem_write),
 		.mem_fetch_input(data1),
 		.data(data_req),
+		.req_hold(data_req_hold),
 		.read_ack(read_ack),
 		.write_ack(write_ack),
 		.reset_n(Reset_N),
@@ -235,8 +238,8 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 
 	always @(*) begin
 		//Calculate bcond
+		target = id_ex_pc_plus_one + id_ex_sign_extended_imm;
 		if(id_ex_branch) begin
-			target = id_ex_pc_plus_one + id_ex_sign_extended_imm;
 			case(id_ex_opcode)
 			`BNE_OP: begin
 				if(A != B) bcond = 1;
@@ -285,6 +288,21 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 			end
 		end
 
+		if(id_ex_pred_pc != id_ex_pc +1) begin
+			if (id_ex_jtype_jump && (id_ex_pred_pc == id_ex_jump_target_addr)) begin
+				flush = 1;
+			end
+			else if (id_ex_rtype_jump && (id_ex_pred_pc == A)) begin
+				flush = 1;
+			end
+			else if (id_ex_branch && bcond && (id_ex_pred_pc == target)) begin
+				flush = 1;
+			end
+			else if (id_ex_branch && ~bcond && id_ex_pred_pc == id_ex_pc_plus_one) begin
+				flush = 1;
+			end
+		end
+
 
 		if (id_ex_jtype_jump) begin
 			btb_target = id_ex_jump_target_addr;
@@ -299,6 +317,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 	end
 
 	always @(posedge Clk) begin
+		$display("PC %x++++++++ %x", pc, num_inst);
 		if(!Reset_N) begin
 			init();
 		end
@@ -328,7 +347,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 			end
 		
 			if(is_cur_inst_halted) begin
-				instruction_fetech <= 0;
+				// instruction_fetech <= 0;
 			end
 			//Progress pipeline
 			if_id_pc <= pc;
@@ -337,17 +356,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 			if_id_pred_pc <= pred_pc;
 		
 			if(stall_before_mem) begin
-				mem_wb_A <= mem_wb_A;
-				mem_wb_is_halted <= mem_wb_is_halted;
-				mem_wb_is_wwd <= mem_wb_is_wwd;
-				mem_wb_num_inst <= mem_wb_num_inst;
-				mem_wb_pc_plus_one <= mem_wb_pc_plus_one;
-				mem_wb_dest <= mem_wb_dest;
-				mem_wb_alu_result <= mem_wb_alu_result;
-				mem_wb_read_data <= mem_wb_read_data;
-				mem_wb_mem_to_reg <= mem_wb_mem_to_reg;
-				mem_wb_pc_to_reg <= mem_wb_pc_to_reg;
-				mem_wb_reg_write <= mem_wb_reg_write;	
+	
 			end
 			else begin
 				//Ignore contorl unit outputs when it is stall condion
@@ -444,14 +453,27 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 
 		end
 
-		if(!is_inst_hit && mem_fetch_owner == 2'b00)
+		
+		if(!is_inst_hit && mem_fetch_owner == 2'b00) begin
 			mem_fetch_owner <= 2'b01;
-		else if(stall_before_mem && mem_fetch_owner == 2'b00)
+			data_req_hold <= 0;
+			inst_req_hold <= 1;
+		end
+		else if(stall_before_mem && mem_fetch_owner == 2'b00) begin
 			mem_fetch_owner <= 2'b10;
-		else if(is_inst_hit && mem_fetch_owner == 2'b01)
+			data_req_hold <= 1;
+			inst_req_hold <= 0;
+		end
+		else if(is_inst_hit && mem_fetch_owner == 2'b01) begin
 			mem_fetch_owner <= 2'b00;
-		else if(!stall_before_mem && mem_fetch_owner == 2'b10)
+			data_req_hold <= 0;
+			inst_req_hold <= 0;
+		end
+		else if(!stall_before_mem && mem_fetch_owner == 2'b10) begin
 			mem_fetch_owner <= 2'b00;
+			data_req_hold <= 0;
+			inst_req_hold <= 0;
+		end
 	end
 
 	//Initialize task
