@@ -255,7 +255,7 @@ module Memory(clk, reset_n, readM1, address1, data1, readM2, writeM2, address2, 
 				end
 				if(write_delay == 0 && writeM2 ) begin
 					write_ack <= 1;
-					read_delay <= 2'b11;
+					write_delay <= 2'b11;
 					if(writeM2) begin
 						memory[address2_start] <= data2[`WORD_SIZE*4-1:`WORD_SIZE*3];
 						memory[address2_start + 1] <= data2[`WORD_SIZE*3-1:`WORD_SIZE*2];
