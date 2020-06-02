@@ -45,14 +45,14 @@ is_hit, mem_fetch_output, req_mem_read, req_mem_read_address, req_mem_write, req
     wire tag_comparator_1 = tag_bank[1][address_idx] == address_tag;
     wire bank_hit_0 = tag_comparator_0 & valid_bank[0][address_idx];
     wire bank_hit_1 = tag_comparator_1 & valid_bank[1][address_idx];
-    assign is_hit = bank_hit_0 | bank_hit_1;
+    assign is_hit = (bank_hit_0 | bank_hit_1) & ~waiting;
 
     initial begin
         init_cache();
     end
 
     always @(*) begin
-        if(is_hit) begin
+        if(is_hit & (mem_read | mem_write)) begin
             if(bank_hit_0)begin
                 target_bank = 0;
                 hitted_line = data_bank[0][address_idx];
@@ -66,6 +66,8 @@ is_hit, mem_fetch_output, req_mem_read, req_mem_read_address, req_mem_write, req
                 resently_used_bank[1][address_idx] = 1;
             end 
             if(mem_write) begin
+                // $display("requset %x. %x", address, data);
+
                 dirty_bit_bank[target_bank][address_idx] = 1;
                 case (address_block_offset)
                     2'b00: hitted_line = {data, hitted_line[`WORD_SIZE*3-1:0]};
@@ -73,15 +75,9 @@ is_hit, mem_fetch_output, req_mem_read, req_mem_read_address, req_mem_write, req
                     2'b10: hitted_line = {hitted_line[`WORD_SIZE*4-1: `WORD_SIZE*2], data, hitted_line[`WORD_SIZE*1-1:0]};
                     2'b11: hitted_line = {hitted_line[`WORD_SIZE*4-1: `WORD_SIZE*1], data};
                 endcase  
-                $display("write %x %x", address, data);
-                $display("00 %x", data_bank[0][0]);
-                $display("01 %x", data_bank[0][1]);
-                $display("10 %x", data_bank[1][0]);
-                $display("11 %x", data_bank[1][1]);
-
             end                               
         end
-        else begin
+        else if(~is_hit & (mem_read | mem_write)) begin
             req_mem_read_address = {address[`WORD_SIZE-1:2], 2'b00};
             if(~valid_bank[0][address_idx]) begin
                 target_bank = 0;
@@ -91,8 +87,12 @@ is_hit, mem_fetch_output, req_mem_read, req_mem_read_address, req_mem_write, req
             end
             else begin // Evict LRU
                 target_bank = resently_used_bank[0][address_idx] ? 1 : 0;
-                if(dirty_bit_bank[target_bank][address_idx]) //Write back only when it is dirty
+                if(dirty_bit_bank[target_bank][address_idx])begin //Write back only when it is dirty 
                     write_back = 1;
+                    mem_fetch_output = data_bank[target_bank][address_idx];
+                    // $display("requset %x", address);
+                    // $display("addr %x evict %x", {tag_bank[target_bank][address_idx], address_idx, 2'b00},mem_fetch_output);
+                end 
                 req_mem_write_address = {tag_bank[target_bank][address_idx], address_idx, 2'b00};
             end
             tag_bank[target_bank][address_idx] = address_tag;
@@ -102,6 +102,10 @@ is_hit, mem_fetch_output, req_mem_read, req_mem_read_address, req_mem_write, req
 
     always @(negedge clk) begin
         if(is_hit) begin
+            // $display("%x %x", {tag_bank[0][0], 1'b0, 2'b00} , data_bank[0][0]);
+            // $display("%x %x", {tag_bank[0][1], 1'b1, 2'b00} , data_bank[0][1]);
+            // $display("%x %x", {tag_bank[1][0], 1'b0, 2'b00} , data_bank[1][0]);
+            // $display("%x %x", {tag_bank[1][1], 1'b1, 2'b00} , data_bank[1][1]);
             if(mem_read) begin
                 case (address_block_offset)
                     2'b00: output_data <= hitted_line[`WORD_SIZE*4-1: `WORD_SIZE*3];
@@ -111,6 +115,7 @@ is_hit, mem_fetch_output, req_mem_read, req_mem_read_address, req_mem_write, req
                 endcase
             end
             else if(mem_write) begin
+                // $display("write %x %x", address, data);
                 data_bank[target_bank][address_idx] <= hitted_line;
             end  
         end
@@ -130,8 +135,9 @@ is_hit, mem_fetch_output, req_mem_read, req_mem_read_address, req_mem_write, req
                     resently_used_bank[~target_bank][address_idx] <= 0;
                     waiting <= 0;
                     req_mem_read <= 0;
-                    if(write_ack) 
+                    if(write_ack) begin
                         req_mem_write <= 0;
+                    end
                 end
                 else if(~waiting & (mem_read | mem_write)) begin
                     req_mem_read <= 1;

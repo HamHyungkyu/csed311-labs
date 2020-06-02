@@ -115,10 +115,10 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 	//Assign wires
 	assign address1 = (mem_fetch_owner == 2'b01) ? inst_read_address : data_read_address;
 	assign address2 = (mem_fetch_owner == 2'b01) ? inst_write_address: data_write_address;
-	assign readM1 = inst_mem_read_req | data_mem_read_req;
+	assign readM1 = mem_fetch_owner == 2'b00 ? 0: mem_fetch_owner == 2'b01 ? inst_mem_read_req : data_mem_read_req;
 	assign readM2 = 0;
-	assign writeM2 = inst_mem_write_req | data_mem_write_req;
-	assign data2 = (mem_fetch_owner == 2'b01) ? inst_mem_fetch_output : data_mem_fetch_output; 
+	assign writeM2 =  2'b00 ? 0: mem_fetch_owner == 2'b01 ? inst_mem_write_req : data_mem_write_req;
+	assign data2 = data_mem_fetch_output; 
 	assign output_port = mem_wb_is_wwd ? mem_wb_A : 0; 
 	assign is_halted = mem_wb_is_halted;
 	assign num_inst = mem_wb_num_inst;
@@ -304,6 +304,9 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 		end
 
 
+		if(ex_mem_mem_write)
+			$display("address %x, data %x", ex_mem_alu_result, ex_mem_read_out2);
+
 		if (id_ex_jtype_jump) begin
 			btb_target = id_ex_jump_target_addr;
 		end
@@ -317,48 +320,48 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 	end
 
 	always @(posedge Clk) begin
-		$display("PC %x++++++++ %x", pc, num_inst);
 		if(!Reset_N) begin
 			init();
 		end
 		else begin
-			before_if_stall <= stall_if;
-			flush <= 0;
-			pc <= next_pc;
-			instruction_fetech <= 1;
-
-			//Flush control outputs
-			if (mem_read || is_stall) begin
-				flush <= 1;
-				pc_num_inst <= pc_num_inst;
-				if_id_num_inst <= if_id_num_inst;
-				$display("pc numinst %x if_id_num_inst %x %x", pc_num_inst, if_id_num_inst, is_wwd);
-			end
-			else if(stall_if) begin 
-				if(flush)
-					flush <= 1;
-				pc_num_inst <= pc_num_inst;
-				if_id_num_inst <= if_id_num_inst;
-			end
-			else begin
-				flush <= 0;
-				pc_num_inst <= pc_num_inst + 1;
-				if_id_num_inst <= pc_num_inst;
-			end
-		
-			if(is_cur_inst_halted) begin
-				// instruction_fetech <= 0;
-			end
-			//Progress pipeline
-			if_id_pc <= pc;
-			if_id_pc_plus_one <= pc + 1;
-			if_id_instruction <= inst_output;
-			if_id_pred_pc <= pred_pc;
-		
 			if(stall_before_mem) begin
 	
 			end
 			else begin
+				$display("num inst %x, pc: %x", num_inst, pc);
+				before_if_stall <= stall_if;
+				flush <= 0;
+				pc <= next_pc;
+				instruction_fetech <= 1;
+
+				//Flush control outputs
+				if (mem_read || is_stall) begin
+					flush <= 1;
+					pc_num_inst <= pc_num_inst;
+					if_id_num_inst <= if_id_num_inst;
+					// $display("pc numinst %x if_id_num_inst %x %x", pc_num_inst, if_id_num_inst, is_wwd);
+				end
+				else if(stall_if) begin 
+					if(flush)
+						flush <= 1;
+					pc_num_inst <= pc_num_inst;
+					if_id_num_inst <= if_id_num_inst;
+				end
+				else begin
+					flush <= 0;
+					pc_num_inst <= pc_num_inst + 1;
+					if_id_num_inst <= pc_num_inst;
+				end
+			
+				if(is_cur_inst_halted) begin
+					// instruction_fetech <= 0;
+				end
+				//Progress pipeline
+				if_id_pc <= pc;
+				if_id_pc_plus_one <= pc + 1;
+				if_id_instruction <= inst_output;
+				if_id_pred_pc <= pred_pc;
+
 				//Ignore contorl unit outputs when it is stall condion
 				if(is_stall) begin
 					id_ex_pc <= id_ex_pc;
@@ -385,7 +388,6 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 					id_ex_is_wwd <= 0;
 					if(before_if_stall == 0)begin
 						flush <= 1;
-						$display("pc numinst %x if_id_num_inst %x", pc_num_inst, if_id_num_inst);
 						pc_num_inst <= if_id_num_inst;
 						if_id_num_inst <= id_ex_num_inst;
 					end
@@ -479,6 +481,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 	//Initialize task
 	task init; 
 	begin
+		bcond <= 0;
 		if_id_pc <= 0;
 		if_id_num_inst <= 0;
 		ex_mem_num_inst <= 0;
