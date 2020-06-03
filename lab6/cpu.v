@@ -288,25 +288,6 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 			end
 		end
 
-		if(id_ex_pred_pc != id_ex_pc +1) begin
-			if (id_ex_jtype_jump && (id_ex_pred_pc == id_ex_jump_target_addr)) begin
-				flush = 1;
-			end
-			else if (id_ex_rtype_jump && (id_ex_pred_pc == A)) begin
-				flush = 1;
-			end
-			else if (id_ex_branch && bcond && (id_ex_pred_pc == target)) begin
-				flush = 1;
-			end
-			else if (id_ex_branch && ~bcond && id_ex_pred_pc == id_ex_pc_plus_one) begin
-				flush = 1;
-			end
-		end
-
-
-		if(ex_mem_mem_write)
-			$display("address %x, data %x", ex_mem_alu_result, ex_mem_read_out2);
-
 		if (id_ex_jtype_jump) begin
 			btb_target = id_ex_jump_target_addr;
 		end
@@ -328,7 +309,6 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 				instruction_fetech <= 1;
 			end
 			else begin
-				$display("num inst %x, pc: %x", num_inst, pc);
 				before_if_stall <= stall_if;
 				flush <= 0;
 				pc <= next_pc;
@@ -339,14 +319,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 					flush <= 1;
 					pc_num_inst <= pc_num_inst;
 					if_id_num_inst <= if_id_num_inst;
-					// $display("pc numinst %x if_id_num_inst %x %x", pc_num_inst, if_id_num_inst, is_wwd);
 				end
-				// else if(stall_if) begin 
-				// 	if(flush)
-				// 		flush <= 1;
-				// 	pc_num_inst <= pc_num_inst;
-				// 	if_id_num_inst <= if_id_num_inst;
-				// end
 				else begin
 					flush <= 0;
 					pc_num_inst <= pc_num_inst + 1;
@@ -354,7 +327,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 				end
 			
 				if(is_cur_inst_halted) begin
-					// instruction_fetech <= 0;
+					instruction_fetech <= 0;
 				end
 				//Progress pipeline
 				if_id_pc <= pc;
@@ -386,11 +359,10 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 					id_ex_sign_extended_imm <= 0;
 					id_ex_is_halted <= 0;
 					id_ex_is_wwd <= 0;
-					// if(before_if_stall == 1)begin
-						flush <= 1;
-						pc_num_inst <= if_id_num_inst;
-						if_id_num_inst <= id_ex_num_inst;
-					// end
+					flush <= 1;
+					pc_num_inst <= if_id_num_inst;
+					if_id_num_inst <= id_ex_num_inst;
+		
 				end
 				else begin
 					id_ex_pc <= if_id_pc;

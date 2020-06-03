@@ -33,12 +33,6 @@ module register_file(read1, read2, write_reg, write_data, reg_write, read_out1, 
 
     	if(reg_write) begin
     		registers[write_reg] <= write_data;
-            // $display("REg write");
-            // $display("%x", registers[0]);
-            // $display("%x", registers[1]);
-            // $display("%x", registers[2]);
-            // $display("%x", registers[3]);
-
     	end
     end
 endmodule

@@ -66,8 +66,6 @@ is_hit, mem_fetch_output, req_mem_read, req_mem_read_address, req_mem_write, req
                 resently_used_bank[1][address_idx] = 1;
             end 
             if(mem_write) begin
-                // $display("requset %x. %x", address, data);
-
                 dirty_bit_bank[target_bank][address_idx] = 1;
                 case (address_block_offset)
                     2'b00: hitted_line = {data, hitted_line[`WORD_SIZE*3-1:0]};
@@ -90,8 +88,6 @@ is_hit, mem_fetch_output, req_mem_read, req_mem_read_address, req_mem_write, req
                 if(dirty_bit_bank[target_bank][address_idx])begin //Write back only when it is dirty 
                     write_back = 1;
                     mem_fetch_output = data_bank[target_bank][address_idx];
-                    // $display("requset %x", address);
-                    // $display("addr %x evict %x", {tag_bank[target_bank][address_idx], address_idx, 2'b00},mem_fetch_output);
                 end 
                 req_mem_write_address = {tag_bank[target_bank][address_idx], address_idx, 2'b00};
             end
@@ -102,10 +98,6 @@ is_hit, mem_fetch_output, req_mem_read, req_mem_read_address, req_mem_write, req
 
     always @(negedge clk) begin
         if(is_hit) begin
-            // $display("%x %x", {tag_bank[0][0], 1'b0, 2'b00} , data_bank[0][0]);
-            // $display("%x %x", {tag_bank[0][1], 1'b1, 2'b00} , data_bank[0][1]);
-            // $display("%x %x", {tag_bank[1][0], 1'b0, 2'b00} , data_bank[1][0]);
-            // $display("%x %x", {tag_bank[1][1], 1'b1, 2'b00} , data_bank[1][1]);
             if(mem_read) begin
                 case (address_block_offset)
                     2'b00: output_data <= hitted_line[`WORD_SIZE*4-1: `WORD_SIZE*3];
@@ -115,7 +107,6 @@ is_hit, mem_fetch_output, req_mem_read, req_mem_read_address, req_mem_write, req
                 endcase
             end
             else if(mem_write) begin
-                // $display("write %x %x", address, data);
                 data_bank[target_bank][address_idx] <= hitted_line;
             end  
         end
