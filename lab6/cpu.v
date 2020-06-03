@@ -327,7 +327,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 				end
 			
 				if(is_cur_inst_halted) begin
-					instruction_fetech <= 0;
+					// instruction_fetech <= 0;
 				end
 				//Progress pipeline
 				if_id_pc <= pc;
