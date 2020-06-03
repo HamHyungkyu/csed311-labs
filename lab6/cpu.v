@@ -324,8 +324,8 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 			init();
 		end
 		else begin
-			if(stall_before_mem) begin
-	
+			if(stall_if) begin
+				instruction_fetech <= 1;
 			end
 			else begin
 				$display("num inst %x, pc: %x", num_inst, pc);
@@ -341,12 +341,12 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 					if_id_num_inst <= if_id_num_inst;
 					// $display("pc numinst %x if_id_num_inst %x %x", pc_num_inst, if_id_num_inst, is_wwd);
 				end
-				else if(stall_if) begin 
-					if(flush)
-						flush <= 1;
-					pc_num_inst <= pc_num_inst;
-					if_id_num_inst <= if_id_num_inst;
-				end
+				// else if(stall_if) begin 
+				// 	if(flush)
+				// 		flush <= 1;
+				// 	pc_num_inst <= pc_num_inst;
+				// 	if_id_num_inst <= if_id_num_inst;
+				// end
 				else begin
 					flush <= 0;
 					pc_num_inst <= pc_num_inst + 1;
@@ -386,11 +386,11 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 					id_ex_sign_extended_imm <= 0;
 					id_ex_is_halted <= 0;
 					id_ex_is_wwd <= 0;
-					if(before_if_stall == 0)begin
+					// if(before_if_stall == 1)begin
 						flush <= 1;
 						pc_num_inst <= if_id_num_inst;
 						if_id_num_inst <= id_ex_num_inst;
-					end
+					// end
 				end
 				else begin
 					id_ex_pc <= if_id_pc;
@@ -487,7 +487,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 		ex_mem_num_inst <= 0;
 		pc <= 0;
 		next_pc <= 0;
-		pc_num_inst <= 0;
+		pc_num_inst <= 1;
 		instruction_fetech <= 0;
 		flush <= 0;
 		id_ex_mem_write <= 0;
