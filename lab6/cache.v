@@ -28,7 +28,7 @@ is_hit, mem_fetch_output, req_mem_read, req_mem_read_address, req_mem_write, req
     //Banks
     reg [`WORD_SIZE - 6:0] tag_bank [1:0][1:0];
     reg valid_bank [1:0][1:0];
-    reg resently_used_bank [1:0][1:0];
+    reg recently_used_bank [1:0][1:0];
     reg dirty_bit_bank [1:0][1:0];
     reg [`WORD_SIZE*4-1:0] data_bank [1:0][1:0];
 
@@ -56,14 +56,14 @@ is_hit, mem_fetch_output, req_mem_read, req_mem_read_address, req_mem_write, req
             if(bank_hit_0)begin
                 target_bank = 0;
                 hitted_line = data_bank[0][address_idx];
-                resently_used_bank[0][address_idx] = 1;
-                resently_used_bank[1][address_idx] = 0;
+                recently_used_bank[0][address_idx] = 1;
+                recently_used_bank[1][address_idx] = 0;
             end
             else begin
                 target_bank = 1;
                 hitted_line = data_bank[1][address_idx];
-                resently_used_bank[0][address_idx] = 0;
-                resently_used_bank[1][address_idx] = 1;
+                recently_used_bank[0][address_idx] = 0;
+                recently_used_bank[1][address_idx] = 1;
             end 
             if(mem_write) begin
                 dirty_bit_bank[target_bank][address_idx] = 1;
@@ -84,7 +84,7 @@ is_hit, mem_fetch_output, req_mem_read, req_mem_read_address, req_mem_write, req
                 target_bank = 1;
             end
             else begin // Evict LRU
-                target_bank = resently_used_bank[0][address_idx] ? 1 : 0;
+                target_bank = recently_used_bank[0][address_idx] ? 1 : 0;
                 if(dirty_bit_bank[target_bank][address_idx])begin //Write back only when it is dirty 
                     write_back = 1;
                     mem_fetch_output = data_bank[target_bank][address_idx];
@@ -122,8 +122,8 @@ is_hit, mem_fetch_output, req_mem_read, req_mem_read_address, req_mem_write, req
                     valid_bank[target_bank][address_idx] <= 1;
                     dirty_bit_bank[target_bank][address_idx] <= 0;
                     data_bank[target_bank][address_idx] <= mem_fetch_input;
-                    resently_used_bank[target_bank][address_idx] <= 1;
-                    resently_used_bank[~target_bank][address_idx] <= 0;
+                    recently_used_bank[target_bank][address_idx] <= 1;
+                    recently_used_bank[~target_bank][address_idx] <= 0;
                     waiting <= 0;
                     req_mem_read <= 0;
                     if(write_ack) begin

@@ -32,6 +32,8 @@ module Memory(clk, reset_n, readM1, address1, data1, readM2, writeM2, address2, 
 	always@(posedge clk)
 		if(!reset_n)
 			begin
+				read_delay <= 2'b0;
+				write_delay <= 2'b0;
 				memory[16'h0] <= 16'h9023;
 				memory[16'h1] <= 16'h1;
 				memory[16'h2] <= 16'hffff;

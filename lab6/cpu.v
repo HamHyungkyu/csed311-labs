@@ -213,7 +213,8 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 		.req_mem_read(inst_mem_read_req),
 		.req_mem_read_address(inst_read_address),
 		.req_mem_write(inst_mem_write_req),
-		.req_mem_write_address(inst_write_address));
+		.req_mem_write_address(inst_write_address)
+	);
 	cache DATA_CACHE(
 		.address(ex_mem_alu_result), 
 		.mem_read(ex_mem_mem_read), 
@@ -230,7 +231,8 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 		.req_mem_read(data_mem_read_req),
 		.req_mem_read_address(data_read_address),
 		.req_mem_write(data_mem_write_req),
-		.req_mem_write_address(data_write_address));
+		.req_mem_write_address(data_write_address)
+	);
 
 	initial begin
 		init();
@@ -259,6 +261,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 			end
 			endcase
 		end
+
 		next_pc = pred_pc;
 
 		//Stall conditons
@@ -270,6 +273,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 		(id_ex_rtype_jump && (id_ex_pred_pc != A)) || 
 		(id_ex_branch && bcond && (id_ex_pred_pc != target)) || 
 		(id_ex_branch && ~bcond && (id_ex_pred_pc != id_ex_pc_plus_one));
+
 		if(is_stall || stall_if || mem_read) begin
 			if (id_ex_jtype_jump && (id_ex_pred_pc != id_ex_jump_target_addr)) begin
 				next_pc = id_ex_jump_target_addr;
@@ -297,7 +301,6 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 		else if (id_ex_branch && bcond) begin
 			btb_target = target;
 		end
-
 	end
 
 	always @(posedge Clk) begin
@@ -362,7 +365,6 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 					flush <= 1;
 					pc_num_inst <= if_id_num_inst;
 					if_id_num_inst <= id_ex_num_inst;
-		
 				end
 				else begin
 					id_ex_pc <= if_id_pc;
@@ -424,10 +426,8 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 				mem_wb_reg_write <= ex_mem_reg_write;	
 				output_num_inst <= mem_wb_num_inst;
 			end
-
 		end
 
-		
 		if(!is_inst_hit && mem_fetch_owner == 2'b00) begin
 			mem_fetch_owner <= 2'b01;
 			data_req_hold <= 0;
