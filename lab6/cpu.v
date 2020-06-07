@@ -2,7 +2,7 @@
 `include "opcodes.v"
 `define WORD_SIZE 16    // data and address word size
 
-module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, data2, num_inst, output_port, is_halted, read_ack, write_ack);
+module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, data2, num_inst, output_port, is_halted, read_ack, write_ack, hit_num, access_num);
 	input Clk;
 	wire Clk;
 	input Reset_N;
@@ -32,6 +32,11 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 	wire [`WORD_SIZE-1:0] output_port;
 	output is_halted;
 	wire is_halted;
+
+	output [`WORD_SIZE-1:0] hit_num;
+	wire [`WORD_SIZE-1:0] hit_num;
+	output [`WORD_SIZE-1:0] access_num;
+	wire [`WORD_SIZE-1:0] access_num;
 
 	reg [`WORD_SIZE-1:0] pc, next_pc, target;
 	reg is_stall, bcond;
@@ -112,6 +117,8 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 	//fromPC
 	reg [`WORD_SIZE-1:0] if_id_pred_pc, id_ex_pred_pc;
 
+	wire [`WORD_SIZE-1:0] inst_hit_num, data_hit_num, inst_access_num, data_access_num;
+
 	//Assign wires
 	assign address1 = (mem_fetch_owner == 2'b01) ? inst_read_address : data_read_address;
 	assign address2 = (mem_fetch_owner == 2'b01) ? inst_write_address: data_write_address;
@@ -122,6 +129,8 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 	assign output_port = mem_wb_is_wwd ? mem_wb_A : 0; 
 	assign is_halted = mem_wb_is_halted;
 	assign num_inst = mem_wb_num_inst;
+	assign hit_num = inst_hit_num + data_hit_num;
+	assign access_num = inst_access_num + data_access_num;
 
 	//regfile
 	assign rs = if_id_instruction[11:10];
@@ -213,7 +222,9 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 		.req_mem_read(inst_mem_read_req),
 		.req_mem_read_address(inst_read_address),
 		.req_mem_write(inst_mem_write_req),
-		.req_mem_write_address(inst_write_address)
+		.req_mem_write_address(inst_write_address),
+		.hit_num(inst_hit_num),
+		.access_num(inst_access_num)
 	);
 	cache DATA_CACHE(
 		.address(ex_mem_alu_result), 
@@ -231,7 +242,9 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 		.req_mem_read(data_mem_read_req),
 		.req_mem_read_address(data_read_address),
 		.req_mem_write(data_mem_write_req),
-		.req_mem_write_address(data_write_address)
+		.req_mem_write_address(data_write_address),
+		.hit_num(data_hit_num),
+		.access_num(data_access_num)
 	);
 
 	initial begin

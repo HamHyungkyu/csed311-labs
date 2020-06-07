@@ -1,7 +1,7 @@
 `define WORD_SIZE 16    // data and address word size
 
 module cache (address, mem_read, mem_write, mem_fetch_input, data, req_hold, read_ack, write_ack, reset_n, clk, 
-is_hit, mem_fetch_output, req_mem_read, req_mem_read_address, req_mem_write, req_mem_write_address);
+is_hit, mem_fetch_output, req_mem_read, req_mem_read_address, req_mem_write, req_mem_write_address, hit_num, access_num);
     // Address format in this cache 
     // 15~3 : tag bits
     // 2  : index
@@ -24,6 +24,8 @@ is_hit, mem_fetch_output, req_mem_read, req_mem_read_address, req_mem_write, req
     output reg [`WORD_SIZE-1:0] req_mem_read_address;
     output reg req_mem_write;
     output reg [`WORD_SIZE-1:0] req_mem_write_address;
+    output reg [`WORD_SIZE-1:0] hit_num;
+    output reg [`WORD_SIZE-1:0] access_num;
 
     //Banks
     reg [`WORD_SIZE - 6:0] tag_bank [1:0][1:0];
@@ -36,6 +38,8 @@ is_hit, mem_fetch_output, req_mem_read, req_mem_read_address, req_mem_write, req
     reg target_bank;
     reg write_back;
     reg waiting;
+    reg before_mem_read;
+    reg [`WORD_SIZE-1:0] before_address;
 
     wire [8:0] address_tag = address[`WORD_SIZE-1: 3];
     wire address_idx = address[2];
@@ -116,28 +120,39 @@ is_hit, mem_fetch_output, req_mem_read, req_mem_read_address, req_mem_write, req
         if(!reset_n) begin
             init_cache();
         end
-        else if(~is_hit) begin
-            if(read_ack) begin
-                if(waiting & req_hold) begin
-                    valid_bank[target_bank][address_idx] <= 1;
-                    dirty_bit_bank[target_bank][address_idx] <= 0;
-                    data_bank[target_bank][address_idx] <= mem_fetch_input;
-                    recently_used_bank[target_bank][address_idx] <= 1;
-                    recently_used_bank[~target_bank][address_idx] <= 0;
-                    waiting <= 0;
-                    req_mem_read <= 0;
-                    if(write_ack) begin
-                        req_mem_write <= 0;
+        else begin
+            before_mem_read <= mem_read;
+            before_address <= address;
+            if(~is_hit) begin
+                if(read_ack) begin
+                    if(waiting & req_hold) begin
+                        valid_bank[target_bank][address_idx] <= 1;
+                        dirty_bit_bank[target_bank][address_idx] <= 0;
+                        data_bank[target_bank][address_idx] <= mem_fetch_input;
+                        recently_used_bank[target_bank][address_idx] <= 1;
+                        recently_used_bank[~target_bank][address_idx] <= 0;
+                        waiting <= 0;
+                        req_mem_read <= 0;
+                        if(write_ack) begin
+                            req_mem_write <= 0;
+                        end
+                    end
+                    else if(~waiting & (mem_read | mem_write)) begin
+                        req_mem_read <= 1;
+                        if(write_back & write_ack) begin
+                            req_mem_write <= 1;
+                        end
+                        waiting <= 1;
                     end
                 end
-                else if(~waiting & (mem_read | mem_write)) begin
-                    req_mem_read <= 1;
-                    if(write_back & write_ack) begin
-                        req_mem_write <= 1;
-                    end
-                    waiting <= 1;
+            end
+
+            if(before_address != address && (mem_read || mem_write)) begin
+                if(is_hit) begin
+                    hit_num <= hit_num + 1;
                 end
-            end  
+                access_num <= access_num + 1;
+            end
         end
     end
 
@@ -154,6 +169,9 @@ is_hit, mem_fetch_output, req_mem_read, req_mem_read_address, req_mem_write, req
        valid_bank[1][1] <= 0;
        waiting <= 0;
        write_back <= 0;
+       hit_num <= 0;
+       access_num <= 0;
+       before_mem_read <= 0;
     end
     endtask
 
