@@ -11,24 +11,20 @@ module cpu_TB();
 	
 	wire readM1;
 	wire [`WORD_SIZE-1:0] address1;
-	wire [`WORD_SIZE*4-1:0] data1;
+	wire [`WORD_SIZE-1:0] data1;
 	wire readM2;
 	wire writeM2;
 	wire [`WORD_SIZE-1:0] address2;
-	wire [`WORD_SIZE*4-1:0] data2;
+	wire [`WORD_SIZE-1:0] data2;
 
 	// for debuging purpose
 	wire [`WORD_SIZE-1:0] num_inst;		// number of instruction during execution
 	wire [`WORD_SIZE-1:0] output_port;	// this will be used for a "WWD" instruction
 	wire is_halted;				// set if the cpu is halted
-	wire read_ack;
-	wire write_ack;
-	wire [`WORD_SIZE-1:0] hit_num;
-	wire [`WORD_SIZE-1:0] access_num;
 
 	// instantiate the unit under test
-	cpu UUT (clk, reset_n, readM1, address1, data1, readM2, writeM2, address2, data2, num_inst, output_port, is_halted, read_ack, write_ack, hit_num, access_num);
-	Memory NUUT(!clk, reset_n, readM1, address1, data1, readM2, writeM2, address2, data2, read_ack, write_ack);
+	cpu UUT (clk, reset_n, readM1, address1, data1, readM2, writeM2, address2, data2, num_inst, output_port, is_halted);
+	Memory NUUT(!clk, reset_n, readM1, address1, data1, readM2, writeM2, address2, data2);
 
 	// initialize inputs
 	initial begin
@@ -113,6 +109,7 @@ module cpu_TB();
 		
 	always @ (posedge clk) begin 
 		if (reset_n == 1) begin
+			if(readM1 || readM2 || writeM2) num_clock = num_clock+1;
 			num_clock = num_clock+1;
 			for(i=0; i<`NUM_TEST; i=i+1) begin
 				if (num_inst == TestNumInst[i]) begin
@@ -143,8 +140,6 @@ module cpu_TB();
 	always @(testbench_finish) begin
 		
 		$display("Clock #%d", num_clock);
-		$display("Hit num #%d", hit_num);
-		$display("Access_num #%d", access_num);
 		$display("The testbench is finished. Summarizing...");
 		for(i=0; i<`NUM_TEST; i=i+1) begin
 			if (TestPassed[i] == 1)
