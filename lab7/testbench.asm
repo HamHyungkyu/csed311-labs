@@ -170,8 +170,8 @@ BLZ5:		WWD	$1	; TEST #18-3 : BLZ (= 0x0001)
 PREFIB2:	ADI	$1, $2, 0
 		JRL	$1
 		WWD	$0	; TEST #20 : JAL & JRL & JPR (= 0x0022)
-
-		HLT		; FINISHED
+		JMP DMA
+		
 
 SIMPLE2:	ADI	$2, $2, 1
 SIMPLE1:	JPR	$2
@@ -200,4 +200,30 @@ FIBRECUR:	SWD	$2, $3, 0
 		ADI	$3, $3, -2
 		JPR	$2
 		HLT
+DMA:	ADI $0, $0, 5e
+		LDI $1, $0, 64
+		WWD $1 (= 0x0001)
+		LDI $1, $0, 65
+		WWD $1 (= 0x0002)
+		LDI $1, $0, 66
+		WWD $1 (= 0x0003)
+		LDI $1, $0, 67
+		WWD $1 (= 0x0004)
+		LDI $1, $0, 68
+		WWD $1 (= 0x0005)
+		LDI $1, $0, 69
+		WWD $1 (= 0x0006)
+		LDI $1, $0, 6a
+		WWD $1 (= 0x0007)
+		LDI $1, $0, 6b
+		WWD $1 (= 0x0008)
+		LDI $1, $0, 6c
+		WWD $1 (= 0x0009)
+		LDI $1, $0, 6d
+		WWD $1 (= 0x000a)
+		LDI $1, $0, 6e
+		WWD $1 (= 0x000b)
+		LDI $1, $0, 6f
+		WWD $1 (= 0x000c)
+		HLT		; FINISHED
 	.END
