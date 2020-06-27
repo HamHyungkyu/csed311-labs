@@ -23,11 +23,16 @@ module cpu_TB();
 	wire is_halted;				// set if the cpu is halted
 	wire read_ack;
 	wire write_ack;
+	wire br, bg; // Bus request and bus grant
+	wire [`WORD_SIZE-1:0] offset;
+	wire interrupt1, interrupt2;
 
 	// instantiate the unit under test
-	cpu UUT (clk, reset_n, readM1, address1, data1, readM2, writeM2, address2, data2, num_inst, output_port, is_halted, read_ack, write_ack);
+	cpu UUT (clk, reset_n, readM1, address1, data1, readM2, writeM2, address2, data2, num_inst, output_port, is_halted, read_ack, 
+		write_ack, interrupt1, interrupt2, bg, br);
 	Memory NUUT(!clk, reset_n, readM1, address1, data1, readM2, writeM2, address2, data2, read_ack, write_ack);
-
+	DMA_controller DMAC(clk, reset_n, interrupt2, data2, bg, br, address2, offset);
+	external_device ED(clk, reset_n, interrupt1, offset, data2);
 	// initialize inputs
 	initial begin
 		clk = 0;           // set initial clock value	

@@ -15,7 +15,7 @@ module external_device(clk, reset_n, interrupt, offset, data);
 	reg [`WORD_SIZE*4-1:0] outputData2;
 	reg [6:0] counter;
 
-	assign data2 = offset ? outputData2 : 64'bz;
+	assign data2 = offset >= 0 ? outputData2 : 64'bz;
 	
 	always@(posedge clk)
 		if(!reset_n)
