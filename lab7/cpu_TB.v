@@ -2,7 +2,7 @@
 `define PERIOD1 100
 `define WORD_SIZE 16
 
-`define NUM_TEST 56
+`define NUM_TEST 68
 `define TESTID_SIZE 5
 
 module cpu_TB();
@@ -25,14 +25,14 @@ module cpu_TB();
 	wire write_ack;
 	wire br, bg; // Bus request and bus grant
 	wire [`WORD_SIZE-1:0] offset;
-	wire interrupt1, interrupt2;
+	wire interrupt;
 
 	// instantiate the unit under test
 	cpu UUT (clk, reset_n, readM1, address1, data1, readM2, writeM2, address2, data2, num_inst, output_port, is_halted, read_ack, 
-		write_ack, interrupt1, interrupt2, bg, br);
+		write_ack, interrupt, bg, br);
 	Memory NUUT(!clk, reset_n, readM1, address1, data1, readM2, writeM2, address2, data2, read_ack, write_ack);
-	DMA_controller DMAC(clk, reset_n, interrupt2, data2, bg, br, address2, offset);
-	external_device ED(clk, reset_n, interrupt1, offset, data2);
+	DMA_controller DMAC(clk, reset_n, interrupt, data2, bg, br, address2, offset);
+	external_device ED(clk, reset_n, interrupt, offset, data2);
 	// initialize inputs
 	initial begin
 		clk = 0;           // set initial clock value	
@@ -109,6 +109,18 @@ module cpu_TB();
 		TestID[53] <= "19-2";	TestNumInst[53] <= 16'h0078;	TestAns[53] <= 16'h0001;		TestPassed[53] <= 1'bx;
 		TestID[54] <= "19-3";	TestNumInst[54] <= 16'h0116;	TestAns[54] <= 16'h0008;		TestPassed[54] <= 1'bx;
 		TestID[55] <= "20";		TestNumInst[55] <= 16'h03d5;	TestAns[55] <= 16'h0022;		TestPassed[55] <= 1'bx;
+		TestID[56] <= "21-1";	TestNumInst[56] <= 16'h03d9;	TestAns[56] <= 16'h0001;		TestPassed[56] <= 1'bx;
+		TestID[57] <= "21-2";	TestNumInst[57] <= 16'h03db;	TestAns[57] <= 16'h0002;		TestPassed[57] <= 1'bx;
+		TestID[58] <= "21-3";	TestNumInst[58] <= 16'h03dd;	TestAns[58] <= 16'h0003;		TestPassed[58] <= 1'bx;
+		TestID[59] <= "21-4";	TestNumInst[59] <= 16'h03df;	TestAns[59] <= 16'h0004;		TestPassed[59] <= 1'bx;
+		TestID[60] <= "21-5";	TestNumInst[60] <= 16'h03e1;	TestAns[60] <= 16'h0005;		TestPassed[60] <= 1'bx;
+		TestID[61] <= "21-6";	TestNumInst[61] <= 16'h03e3;	TestAns[61] <= 16'h0006;		TestPassed[61] <= 1'bx;
+		TestID[62] <= "21-7";	TestNumInst[62] <= 16'h03e5;	TestAns[62] <= 16'h0007;		TestPassed[62] <= 1'bx;
+		TestID[63] <= "21-8";	TestNumInst[63] <= 16'h03e7;	TestAns[63] <= 16'h0008;		TestPassed[63] <= 1'bx;
+		TestID[64] <= "21-9";	TestNumInst[64] <= 16'h03e9;	TestAns[64] <= 16'h0009;		TestPassed[64] <= 1'bx;
+		TestID[65] <= "21-10";	TestNumInst[65] <= 16'h03eb;	TestAns[65] <= 16'h000a;		TestPassed[65] <= 1'bx;
+		TestID[66] <= "21-11";	TestNumInst[66] <= 16'h03ed;	TestAns[66] <= 16'h000b;		TestPassed[66] <= 1'bx;
+		TestID[67] <= "21-12";	TestNumInst[67] <= 16'h03ef;	TestAns[67] <= 16'h000c;		TestPassed[67] <= 1'bx;
 	end		   
 	
 	reg [`WORD_SIZE-1:0] i;	

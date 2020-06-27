@@ -1,8 +1,11 @@
 `timescale 1ns/1ns
 `include "opcodes.v"
 `define WORD_SIZE 16    // data and address word size
+`define FOUR_WORDS 64
+`define DMA_ADDRESS 16'he4
 
-module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, data2, num_inst, output_port, is_halted, read_ack, write_ack);
+module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, data2, num_inst, output_port, is_halted, read_ack, 
+	write_ack, interrupt, bg, br);
 	input Clk;
 	wire Clk;
 	input Reset_N;
@@ -32,6 +35,12 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 	wire [`WORD_SIZE-1:0] output_port;
 	output is_halted;
 	wire is_halted;
+
+	input interrupt;
+	input br;
+	output reg bg;
+	reg interrupt_before;
+	reg write_ack_before;
 
 	reg [`WORD_SIZE-1:0] pc, next_pc, target;
 	reg is_stall, bcond;
@@ -114,11 +123,17 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 
 	//Assign wires
 	assign address1 = (mem_fetch_owner == 2'b01) ? inst_read_address : data_read_address;
-	assign address2 = (mem_fetch_owner == 2'b01) ? inst_write_address: data_write_address;
+	assign address2 = interrupt_before ? `DMA_ADDRESS : 
+		(mem_fetch_owner == 2'b01) ? inst_write_address : 
+		mem_fetch_owner == 2'b10 ? data_write_address : 
+		`WORD_SIZE'bz;
 	assign readM1 = mem_fetch_owner == 2'b00 ? 0: mem_fetch_owner == 2'b01 ? inst_mem_read_req : data_mem_read_req;
 	assign readM2 = 0;
-	assign writeM2 =  2'b00 ? 0: mem_fetch_owner == 2'b01 ? inst_mem_write_req : data_mem_write_req;
-	assign data2 = data_mem_fetch_output; 
+	assign writeM2 =  mem_fetch_owner == 2'b00 ? 0 : 
+		mem_fetch_owner == 2'b01 ? inst_mem_write_req :
+		mem_fetch_owner == 2'b10 ? data_mem_write_req :
+		br;
+	assign data2 = interrupt_before ? `FOUR_WORDS'hc : mem_fetch_owner == 2'b11 ? `FOUR_WORDS'bz : data_mem_fetch_output; 
 	assign output_port = mem_wb_is_wwd ? mem_wb_A : 0; 
 	assign is_halted = mem_wb_is_halted;
 	assign num_inst = mem_wb_num_inst;
@@ -427,26 +442,52 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 
 		end
 
-		
-		if(!is_inst_hit && mem_fetch_owner == 2'b00) begin
+		interrupt_before <= interrupt;
+		write_ack_before <= write_ack;
+		if(interrupt) begin
+			mem_fetch_owner <= 2'b00;
+			data_req_hold <= 0;
+			inst_req_hold <= 0;
+			bg <= 0;
+		end
+		else if(!is_inst_hit && mem_fetch_owner == 2'b00) begin
 			mem_fetch_owner <= 2'b01;
 			data_req_hold <= 0;
 			inst_req_hold <= 1;
+			bg <= 0;
 		end
 		else if(stall_before_mem && mem_fetch_owner == 2'b00) begin
 			mem_fetch_owner <= 2'b10;
 			data_req_hold <= 1;
 			inst_req_hold <= 0;
+			bg <= 0;
 		end
-		else if(is_inst_hit && mem_fetch_owner == 2'b01) begin
+		else if(is_inst_hit && mem_fetch_owner == 2'b01 && ~br) begin
 			mem_fetch_owner <= 2'b00;
 			data_req_hold <= 0;
 			inst_req_hold <= 0;
+			bg <= 0;
 		end
-		else if(!stall_before_mem && mem_fetch_owner == 2'b10) begin
+		else if(!stall_before_mem && mem_fetch_owner == 2'b10 && ~br) begin
 			mem_fetch_owner <= 2'b00;
 			data_req_hold <= 0;
 			inst_req_hold <= 0;
+			bg <= 0;
+		end
+		else if(br) begin
+			if(mem_fetch_owner != 2'b11) begin
+				mem_fetch_owner <= 2'b11;
+				data_req_hold <= 0;
+				inst_req_hold <= 0;
+				bg <= 1;
+			end
+			else if(~write_ack_before & write_ack) begin
+				mem_fetch_owner <= 2'b00;
+				data_req_hold <= 0;
+				inst_req_hold <= 0;
+				bg <= 0;
+			end
+
 		end
 	end
 
@@ -469,6 +510,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 		mem_wb_reg_write <= 0;
 		mem_fetch_owner <= 0;
 		rest <= 0;
+		bg <= 0;
 	end
 	endtask
 
