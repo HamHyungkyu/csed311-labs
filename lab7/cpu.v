@@ -5,7 +5,7 @@
 `define DMA_ADDRESS 16'he4
 
 module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, data2, num_inst, output_port, is_halted, read_ack, 
-	write_ack, interrupt, bg, br);
+	write_ack, interrupt, bg, br, interrupt2);
 	input Clk;
 	wire Clk;
 	input Reset_N;
@@ -37,6 +37,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 	wire is_halted;
 
 	input interrupt;
+	input interrupt2;
 	input br;
 	output reg bg;
 	reg interrupt_before;
@@ -449,6 +450,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 			data_req_hold <= 0;
 			inst_req_hold <= 0;
 			bg <= 0;
+			$display("DMA begin (num_inst: %d )", num_inst);
 		end
 		else if(!is_inst_hit && mem_fetch_owner == 2'b00) begin
 			mem_fetch_owner <= 2'b01;
@@ -488,6 +490,9 @@ module cpu(Clk, Reset_N, readM1, address1, data1,  readM2, writeM2, address2, da
 				bg <= 0;
 			end
 
+		end
+		if(interrupt2) begin
+			$display("DMA finish (num_inst: %d )", num_inst);
 		end
 	end
 

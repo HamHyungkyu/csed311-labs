@@ -1,19 +1,20 @@
 `define WORD_SIZE 16
 
-module DMA_controller(clk, reset_n, interrupt, length, bg, br, address, offset);
+module DMA_controller(clk, reset_n, command, length, bg, br, address, offset, interrupt);
     input clk;
     input reset_n;
-    input interrupt;
+    input command;
     input bg;
     input [`WORD_SIZE*4-1:0] length;
     inout [`WORD_SIZE-1:0]address;
 	output reg [`WORD_SIZE-1:0] offset;
     output reg br;
+    output reg interrupt;
     
     reg [`WORD_SIZE-1:0] input_address;
     reg [`WORD_SIZE-1:0] output_address;
     reg bg_before;
-    reg interrupt_before;
+    reg command_before;
 
     reg [`WORD_SIZE-1:0] counter;
 
@@ -33,11 +34,13 @@ module DMA_controller(clk, reset_n, interrupt, length, bg, br, address, offset);
 			begin
                 offset <= `WORD_SIZE'bz;
                 br <= 0;
+                interrupt <= 0;
 			end
 		else begin
-            interrupt_before <= interrupt;
+            command_before <= command;
             bg_before <= bg;
-            if(interrupt_before) begin
+            interrupt <= 0;
+            if(command_before) begin
                 counter <= (length[`WORD_SIZE-1: 0] >> 2) - 1; // number of transaction for 4 words blocks;
                 input_address <= address;
                 br <= 1;
@@ -46,7 +49,10 @@ module DMA_controller(clk, reset_n, interrupt, length, bg, br, address, offset);
                 if(counter > 0)
                     counter <= counter - 1;
                 else 
-                    br <= 0;  
+                    begin
+                        br <= 0;  
+                        interrupt <= 1;
+                    end
             end
 		end
     end

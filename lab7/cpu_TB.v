@@ -26,12 +26,13 @@ module cpu_TB();
 	wire br, bg; // Bus request and bus grant
 	wire [`WORD_SIZE-1:0] offset;
 	wire interrupt;
+	wire interrupt2;
 
 	// instantiate the unit under test
 	cpu UUT (clk, reset_n, readM1, address1, data1, readM2, writeM2, address2, data2, num_inst, output_port, is_halted, read_ack, 
-		write_ack, interrupt, bg, br);
+		write_ack, interrupt, bg, br, interrupt2);
 	Memory NUUT(!clk, reset_n, readM1, address1, data1, readM2, writeM2, address2, data2, read_ack, write_ack);
-	DMA_controller DMAC(clk, reset_n, interrupt, data2, bg, br, address2, offset);
+	DMA_controller DMAC(clk, reset_n, interrupt, data2, bg, br, address2, offset, interrupt2);
 	external_device ED(clk, reset_n, interrupt, offset, data2);
 	// initialize inputs
 	initial begin
